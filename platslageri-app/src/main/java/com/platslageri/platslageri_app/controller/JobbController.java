@@ -15,6 +15,7 @@ import java.util.List;
  * Controller för att hantera jobb (logg/anteckningar)
  */
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/jobb")
 public class JobbController {
 

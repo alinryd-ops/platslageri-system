@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Plåtslageri</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            background: #f5f6fa;
+        }
+
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .active {
+            border-bottom: 3px solid #2563eb;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .ej {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .klar {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        #app {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<header>Plåtslageri</header>
+
+<div id="login" class="content">
+    <h3>Ange PIN</h3>
+    <input id="pinInput" type="password" placeholder="PIN">
+    <button onclick="loggaIn()">Logga in</button>
+</div>
+
+<div id="app">
+    <div class="tabs">
+        <div class="tab active" onclick="visaTab('jobb')">Jobb</div>
+        <div class="tab" onclick="visaTab('skapa')">Skapa</div>
+    </div>
+
+    <div id="jobb" class="content">
+        <button onclick="hamtaJobb()">Uppdatera</button>
+        <div id="jobbLista"></div>
+    </div>
+
+    <div id="skapa" class="content" style="display:none;">
+        <input id="kund" placeholder="Kund">
+        <input id="beskrivning" placeholder="Beskrivning">
+        <button onclick="skapaJobb()">Spara jobb</button>
+    </div>
+</div>
+
+<script>
+const API_URL = "https://platslageri-system-1.onrender.com";
+let PIN = "";
+
+function loggaIn() {
+    PIN = document.getElementById("pinInput").value;
+
+    if (!PIN) return alert("Skriv PIN");
+
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+
+    hamtaJobb();
+}
+
+function visaTab(tab) {
+    document.getElementById("jobb").style.display = "none";
+    document.getElementById("skapa").style.display = "none";
+
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+
+    if (tab === "jobb") {
+        document.getElementById("jobb").style.display = "block";
+        document.querySelectorAll(".tab")[0].classList.add("active");
+    } else {
+        document.getElementById("skapa").style.display = "block";
+        document.querySelectorAll(".tab")[1].classList.add("active");
+    }
+}
+
+async function skapaJobb() {
+    const kund = document.getElementById("kund").value;
+    const beskrivning = document.getElementById("beskrivning").value;
+
+    const res = await fetch(API_URL + "/jobb", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-PIN": PIN
+        },
+        body: JSON.stringify({
+            kund: kund,
+            projektBeskrivning: beskrivning,
+            littra: "A1",
+            kundTyp: "PRIVAT"
+        })
+    });
+
+    if (res.ok) {
+        alert("Sparat!");
+        visaTab('jobb');
+        hamtaJobb();
+    } else {
+        alert("Fel!");
+    }
+}
+
+async function hamtaJobb() {
+    const res = await fetch(API_URL + "/jobb", {
+        headers: {
+            "X-PIN": PIN
+        }
+    });
+
+        if (!res.ok) {
+        alert("Kunde inte hämta jobb");
+        return;
+    }
+
+    const jobb = await res.json();
+
+    const lista = document.getElementById("jobbLista");
+    lista.innerHTML = "";
+
+    jobb.forEach(j => {
+        const div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+            <b>${j.kund}</b><br>
+            ${j.projektBeskrivning}<br><br>
+            <span class="status ej">Ej fakturerad</span>
+        `;
+
+        lista.appendChild(div);
+    });
+}
+</script>
+
+</body>
+</html>
