@@ -8,6 +8,7 @@ import com.platslageri.platslageri_app.repository.JobbRepository;
 import org.springframework.web.bind.annotation.*;
 import com.platslageri.platslageri_app.exception.NotFoundException;
 import com.platslageri.platslageri_app.exception.ValidationException;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
