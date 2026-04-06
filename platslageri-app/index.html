@@ -5,88 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body {
-            font-family: Arial;
-            margin: 0;
-            background: #f5f6fa;
-        }
+        body { font-family: Arial; margin: 0; background: #f5f6fa; }
+        header { background: #0f172a; color: white; padding: 15px; text-align: center; }
 
-        header {
-            background: #0f172a;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 18px;
-        }
+        .tabs { display: flex; background: white; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; }
+        .active { border-bottom: 3px solid #2563eb; font-weight: bold; }
 
-        .tabs {
-            display: flex;
-            background: white;
-            border-bottom: 1px solid #ddd;
-        }
+        .content { padding: 15px; }
 
-        .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .active {
-            border-bottom: 3px solid #2563eb;
-            font-weight: bold;
-        }
-
-        .content {
-            padding: 15px;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+        input, select {
+            width: 100%; padding: 10px; margin-bottom: 10px;
+            border-radius: 8px; border: 1px solid #ccc;
         }
 
         button {
-            padding: 10px;
-            border: none;
-            border-radius: 10px;
-            background: #2563eb;
-            color: white;
-            width: 100%;
-            margin-bottom: 10px;
+            padding: 12px; border: none; border-radius: 10px;
+            background: #2563eb; color: white; width: 100%; margin-bottom: 10px;
         }
+
+        .danger { background: red; }
 
         .card {
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            background: white; padding: 15px;
+            border-radius: 15px; margin-bottom: 10px;
         }
 
-        .status {
-            padding: 5px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            display: inline-block;
-        }
-
-        .ej {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .klar {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        #app {
-            display: none;
-        }
+        #app { display: none; }
     </style>
 </head>
 <body>
@@ -94,12 +39,12 @@
 <header>Plåtslageri</header>
 
 <div id="login" class="content">
-    <h3>Ange PIN</h3>
     <input id="pinInput" type="password" placeholder="PIN">
     <button onclick="loggaIn()">Logga in</button>
 </div>
 
 <div id="app">
+
     <div class="tabs">
         <div class="tab active" onclick="visaTab('jobb')">Jobb</div>
         <div class="tab" onclick="visaTab('skapa')">Skapa</div>
@@ -113,96 +58,369 @@
     <div id="skapa" class="content" style="display:none;">
         <input id="kund" placeholder="Kund">
         <input id="beskrivning" placeholder="Beskrivning">
+        <input id="littra" placeholder="Littra">
+
+        <select id="kundTyp">
+            <option value="PRIVAT">Privat</option>
+            <option value="FÖRETAG">Företag</option>
+        </select>
+
+        <input id="datum" type="date">
+        <input id="anteckning" placeholder="Anteckning">
+
+        <h3>Material</h3>
+
+        <div id="materialSkapaLista"></div>
+
+        <select id="matTyp"></select>
+        <input id="matMangd" placeholder="Mängd">
+        <input id="matEnhet" placeholder="Enhet">
+
+        <button onclick="läggTillMaterialSkapa()">+ Lägg till material</button>
         <button onclick="skapaJobb()">Spara jobb</button>
     </div>
+
+</div>
+
+<div id="jobbDetalj" style="display:none; padding:20px;">
+
+    <button onclick="stängDetalj()">⬅ Tillbaka</button>
+
+    <h3>Material</h3>
+    <div id="detaljMaterial"></div>
+
+    <div id="editMaterial" style="display:none;">
+        <select id="editMatTyp"></select>
+        <input id="editMatMangd" placeholder="Mängd">
+        <input id="editMatEnhet" placeholder="Enhet">
+        <button onclick="läggTillMaterialEdit()">+ Lägg till</button>
+    </div>
+
+    <p id="kundText"></p>
+    <p id="beskrivningText"></p>
+    <p id="anteckningText"></p>
+
+    <input id="kundInput" style="display:none;">
+    <input id="beskrivningInput" style="display:none;">
+    <input id="anteckningInput" style="display:none;">
+
+    <button onclick="kopieraJobb()">📋 Kopiera</button>
+    <button onclick="redigeraJobb()">✏️ Redigera</button>
+    <button id="sparaBtn" onclick="sparaJobb()" style="display:none;">💾 Spara</button>
+    <button class="danger" onclick="taBortJobb()">🗑 Ta bort</button>
+
 </div>
 
 <script>
 const API_URL = "https://platslageri-system-1.onrender.com";
 let PIN = "";
+let currentJobb = null;
+let materialTyper = [];
 
-function loggaIn() {
-    PIN = document.getElementById("pinInput").value;
-
+/* LOGIN */
+async function loggaIn() {
+    PIN = pinInput.value;
     if (!PIN) return alert("Skriv PIN");
 
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
+    login.style.display = "none";
+    app.style.display = "block";
+
+    await hämtaMaterialTyper();
+    renderMaterialDropdown();
+    renderEditMaterialDropdown();
 
     hamtaJobb();
 }
 
+/* HÄMTA MATERIALTYPER */
+async function hämtaMaterialTyper() {
+    const res = await fetch(API_URL + "/jobb/material-typer", {
+        headers: { "X-PIN": PIN }
+    });
+
+    materialTyper = await res.json();
+}
+
+/* DROPDOWN SKAPA */
+function renderMaterialDropdown() {
+    matTyp.innerHTML = '<option value="">Välj material</option>';
+
+    materialTyper.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.text = t;
+        matTyp.appendChild(opt);
+    });
+}
+
+/* DROPDOWN EDIT */
+function renderMaterialDropdown() {
+    matTyp.innerHTML = '<option value="">Välj material</option>';
+
+    materialTyper.forEach(t => {
+        const opt = document.createElement("option");
+
+        const value = typeof t === "string" ? t : t.name;
+
+        opt.value = value;
+        opt.text = value;
+
+        matTyp.appendChild(opt);
+    });
+}
+
+/* TABS */
 function visaTab(tab) {
-    document.getElementById("jobb").style.display = "none";
-    document.getElementById("skapa").style.display = "none";
+    jobb.style.display = "none";
+    skapa.style.display = "none";
 
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
 
     if (tab === "jobb") {
-        document.getElementById("jobb").style.display = "block";
+        jobb.style.display = "block";
         document.querySelectorAll(".tab")[0].classList.add("active");
     } else {
-        document.getElementById("skapa").style.display = "block";
+        skapa.style.display = "block";
         document.querySelectorAll(".tab")[1].classList.add("active");
     }
 }
 
+/* SKAPA */
 async function skapaJobb() {
-    const kund = document.getElementById("kund").value;
-    const beskrivning = document.getElementById("beskrivning").value;
-
-    const res = await fetch(API_URL + "/jobb", {
+    await fetch(API_URL + "/jobb", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-PIN": PIN
         },
         body: JSON.stringify({
-            kund: kund,
-            projektBeskrivning: beskrivning,
-            littra: "A1",
-            kundTyp: "PRIVAT"
+            kund: kund.value,
+            projektBeskrivning: beskrivning.value,
+            littra: littra.value,
+            kundTyp: kundTyp.value,
+            datum: datum.value,
+            anteckning: anteckning.value,
+            materialLista: materialSkapa
         })
     });
 
-    if (res.ok) {
-        alert("Sparat!");
-        visaTab('jobb');
-        hamtaJobb();
-    } else {
-        alert("Fel!");
-    }
+    alert("Sparat!");
+    materialSkapa = [];
+    renderMaterialSkapa();
+    visaTab('jobb');
+    hamtaJobb();
 }
 
-async function hamtaJobb() {
-    const res = await fetch(API_URL + "/jobb", {
-        headers: {
-            "X-PIN": PIN
-        }
+/* MATERIAL SKAPA */
+let materialSkapa = [];
+
+function läggTillMaterialSkapa() {
+    const typ = matTyp.value;
+    const mangd = parseFloat(matMangd.value);
+    const enhet = matEnhet.value;
+
+    if (!typ) return alert("Välj material");
+    if (isNaN(mangd)) return alert("Fyll i mängd");
+
+    materialSkapa.push({
+        typ: typ.toUpperCase(), // 🔥 säkerställer rätt enum
+        mangd: mangd,
+        enhet: enhet
     });
 
-        if (!res.ok) {
-        alert("Kunde inte hämta jobb");
-        return;
-    }
+    renderMaterialSkapa();
 
-    const jobb = await res.json();
+    matTyp.value = "";
+    matMangd.value = "";
+    matEnhet.value = "";
+}
 
-    const lista = document.getElementById("jobbLista");
-    lista.innerHTML = "";
+function renderMaterialSkapa() {
+    materialSkapaLista.innerHTML = "";
 
-    jobb.forEach(j => {
+    materialSkapa.forEach((m, i) => {
         const div = document.createElement("div");
         div.className = "card";
 
         div.innerHTML = `
-            <b>${j.kund}</b><br>
-            ${j.projektBeskrivning}<br><br>
-            <span class="status ej">Ej fakturerad</span>
+            ${m.typ} - ${m.mangd} ${m.enhet}
+            <button onclick="taBortMaterialSkapa(${i})">X</button>
         `;
 
-        lista.appendChild(div);
+        materialSkapaLista.appendChild(div);
     });
+}
+
+function taBortMaterialSkapa(i) {
+    materialSkapa.splice(i, 1);
+    renderMaterialSkapa();
+}
+
+/* HÄMTA JOBB */
+async function hamtaJobb() {
+    const res = await fetch(API_URL + "/jobb", {
+        headers: { "X-PIN": PIN }
+    });
+
+    const jobbData = await res.json();
+    jobbLista.innerHTML = "";
+
+    jobbData.forEach(j => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<b>${j.kund}</b><br>${j.projektBeskrivning}`;
+        div.onclick = () => öppnaDetalj(j);
+        jobbLista.appendChild(div);
+    });
+}
+
+/* DETALJ */
+function öppnaDetalj(j) {
+    currentJobb = j;
+
+    jobbDetalj.style.display = "block";
+    app.style.display = "none";
+
+    kundText.innerText = j.kund;
+    beskrivningText.innerText = j.projektBeskrivning;
+    anteckningText.innerText = j.anteckning || "";
+
+    kundInput.value = j.kund;
+    beskrivningInput.value = j.projektBeskrivning;
+    anteckningInput.value = j.anteckning || "";
+
+    renderDetaljMaterial(j.materialLista || []);
+}
+
+function stängDetalj() {
+    jobbDetalj.style.display = "none";
+    app.style.display = "block";
+}
+
+/* REDIGERA */
+function redigeraJobb() {
+    kundInput.style.display = "block";
+    beskrivningInput.style.display = "block";
+    anteckningInput.style.display = "block";
+
+    kundText.style.display = "none";
+    beskrivningText.style.display = "none";
+    anteckningText.style.display = "none";
+
+    editMaterial.style.display = "block";
+    sparaBtn.style.display = "block";
+
+    renderEditMaterial();
+}
+
+/* MATERIAL EDIT */
+function renderEditMaterial() {
+    detaljMaterial.innerHTML = "";
+
+    currentJobb.materialLista.forEach((m, i) => {
+        let options = "";
+
+        materialTyper.forEach(t => {
+            const value = typeof t === "string" ? t : t.name;
+
+            options += `<option value="${value}" ${m.typ === value ? 'selected' : ''}>${value}</option>`;
+        });
+
+        const div = document.createElement("div");
+
+        div.innerHTML = `
+            <select onchange="updateMaterial(${i}, 'typ', this.value)">
+                ${options}
+            </select>
+
+            <input value="${m.mangd}" onchange="updateMaterial(${i}, 'mangd', this.value)">
+            <input value="${m.enhet}" onchange="updateMaterial(${i}, 'enhet', this.value)">
+
+            <button onclick="taBortMaterialEdit(${i})">X</button>
+        `;
+
+        detaljMaterial.appendChild(div);
+    });
+}
+
+function updateMaterial(i, f, v) {
+    currentJobb.materialLista[i][f] = v;
+}
+
+function taBortMaterialEdit(i) {
+    currentJobb.materialLista.splice(i, 1);
+    renderEditMaterial();
+}
+
+function läggTillMaterialEdit() {
+    currentJobb.materialLista.push({
+        typ: editMatTyp.value,
+        mangd: parseFloat(editMatMangd.value),
+        enhet: editMatEnhet.value
+    });
+
+    renderEditMaterial();
+}
+
+/* SPARA */
+async function sparaJobb() {
+    await fetch(API_URL + "/jobb/" + currentJobb.id, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-PIN": PIN
+        },
+        body: JSON.stringify({
+            kund: kundInput.value,
+            projektBeskrivning: beskrivningInput.value,
+            anteckning: anteckningInput.value,
+            littra: currentJobb.littra,
+            kundTyp: currentJobb.kundTyp,
+            timmar: currentJobb.timmar,
+            minuter: currentJobb.minuter,
+            fakturerad: currentJobb.fakturerad,
+            littraMarkning: currentJobb.littraMarkning,
+            materialLista: currentJobb.materialLista
+        })
+    });
+
+    alert("Uppdaterat!");
+    stängDetalj();
+    hamtaJobb();
+}
+
+/* DELETE */
+async function taBortJobb() {
+    if (!confirm("Ta bort?")) return;
+
+    await fetch(API_URL + "/jobb/" + currentJobb.id, {
+        method: "DELETE",
+        headers: { "X-PIN": PIN }
+    });
+
+    alert("Borttagen");
+    stängDetalj();
+    hamtaJobb();
+}
+
+/* VIEW MATERIAL */
+function renderDetaljMaterial(list) {
+    detaljMaterial.innerHTML = "";
+
+    list.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerText = `${m.typ} - ${m.mangd} ${m.enhet}`;
+        detaljMaterial.appendChild(div);
+    });
+}
+
+/* COPY */
+function kopieraJobb() {
+    navigator.clipboard.writeText(
+        currentJobb.kund + "\n" + currentJobb.projektBeskrivning
+    );
+    alert("Kopierat!");
 }
 </script>
 

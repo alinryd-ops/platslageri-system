@@ -3,12 +3,12 @@ package com.platslageri.platslageri_app.controller;
 import com.platslageri.platslageri_app.model.ArbetsRad;
 import com.platslageri.platslageri_app.model.Jobb;
 import com.platslageri.platslageri_app.model.Material;
+import com.platslageri.platslageri_app.model.MaterialTyp;
 import com.platslageri.platslageri_app.repository.JobbRepository;
 
 import org.springframework.web.bind.annotation.*;
 import com.platslageri.platslageri_app.exception.NotFoundException;
 import com.platslageri.platslageri_app.exception.ValidationException;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
 
@@ -113,6 +113,14 @@ public class JobbController {
         jobb.addMaterial(material);
 
         return jobbRepository.save(jobb);
+    }
+
+    /**
+     * Hämta materialtyper för frontend
+     */
+    @GetMapping("/material-typer")
+    public MaterialTyp[] getMaterialTyper() {
+        return MaterialTyp.values();
     }
 
     /**
