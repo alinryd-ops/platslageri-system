@@ -9,6 +9,7 @@ import com.platslageri.platslageri_app.repository.JobbRepository;
 import org.springframework.web.bind.annotation.*;
 import com.platslageri.platslageri_app.exception.NotFoundException;
 import com.platslageri.platslageri_app.exception.ValidationException;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -35,10 +36,26 @@ public class JobbController {
     }
 
     /**
+     * PIN verifiering
+     */    
+    @Value("${app.pin}")
+    private String correctPin;
+
+    private void checkPin(String pin) {
+        if (pin == null || !pin.trim().equals(correctPin.trim())) {
+            throw new RuntimeException("Fel PIN");
+        }
+    }
+
+    /**
      * Hämta alla jobb
      */
     @GetMapping
-    public List<Jobb> getAllaJobb() {
+    public List<Jobb> getAllaJobb(
+            @RequestHeader(value = "X-PIN", required = false) String pin) {
+
+        checkPin(pin);
+
         return jobbRepository.findAll();
     }
 
