@@ -127,7 +127,6 @@ async function loggaIn() {
 
     await hämtaMaterialTyper();
     renderMaterialDropdown();
-    renderEditMaterialDropdown();
 
     hamtaJobb();
 }
@@ -139,18 +138,6 @@ async function hämtaMaterialTyper() {
     });
 
     materialTyper = await res.json();
-}
-
-/* DROPDOWN SKAPA */
-function renderMaterialDropdown() {
-    matTyp.innerHTML = '<option value="">Välj material</option>';
-
-    materialTyper.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.text = t;
-        matTyp.appendChild(opt);
-    });
 }
 
 /* DROPDOWN EDIT */
