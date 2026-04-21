@@ -333,8 +333,17 @@
             <option value="FÖRETAG">Företag</option>
         </select>
 
-        <span class="form-label">Datum</span>
-        <input id="datum" type="date">
+        <span class="form-label">Startdatum</span>
+        <input id="startDatum" type="date">
+
+        <span class="form-label">Slutdatum</span>
+        <input id="slutDatum" type="date">
+
+        <span class="form-label">Timmar</span>
+        <input id="timmar" type="number" inputmode="numeric" placeholder="0" min="0">
+
+        <span class="form-label">Minuter</span>
+        <input id="minuter" type="number" inputmode="numeric" placeholder="0" min="0" max="59">
 
         <span class="form-label">Anteckning</span>
         <textarea id="anteckning" placeholder="Beskriv vad som gjordes, material, detaljer..."></textarea>
@@ -414,10 +423,26 @@
 
         <div class="field-row">
             <div class="field-info">
-                <div class="field-label">Datum</div>
-                <div class="field-value" id="dDatum"></div>
+                <div class="field-label">Startdatum</div>
+                <div class="field-value" id="dStartDatum"></div>
             </div>
-            <button class="copy-btn" onclick="kopieraFalt('dDatum', this)" title="Kopiera">📋</button>
+            <button class="copy-btn" onclick="kopieraFalt('dStartDatum', this)" title="Kopiera">📋</button>
+        </div>
+
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Slutdatum</div>
+                <div class="field-value" id="dSlutDatum"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dSlutDatum', this)" title="Kopiera">📋</button>
+        </div>
+
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Tid</div>
+                <div class="field-value" id="dTid"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dTid', this)" title="Kopiera">📋</button>
         </div>
 
         <div class="field-row">
@@ -451,6 +476,18 @@
 
         <span class="form-label">Beskrivning</span>
         <input id="rBeskrivning" placeholder="Projektbeskrivning">
+
+        <span class="form-label">Startdatum</span>
+        <input id="rStartDatum" type="date">
+
+        <span class="form-label">Slutdatum</span>
+        <input id="rSlutDatum" type="date">
+
+        <span class="form-label">Timmar</span>
+        <input id="rTimmar" type="number" inputmode="numeric" placeholder="0" min="0">
+
+        <span class="form-label">Minuter</span>
+        <input id="rMinuter" type="number" inputmode="numeric" placeholder="0" min="0" max="59">
 
         <span class="form-label">Anteckning</span>
         <textarea id="rAnteckning" placeholder="Anteckning"></textarea>
@@ -577,7 +614,12 @@ function oppnaDetalj(j) {
     document.getElementById("dBeskrivning").innerText = j.projektBeskrivning || "–";
     document.getElementById("dLittra").innerText = j.littra || "–";
     document.getElementById("dKundTyp").innerText = j.kundTyp || "–";
-    document.getElementById("dDatum").innerText = j.datum || "–";
+    document.getElementById("dStartDatum").innerText = j.startDatum || "–";
+    document.getElementById("dSlutDatum").innerText = j.slutDatum || "–";
+    const tid = (j.timmar || 0) > 0 || (j.minuter || 0) > 0
+        ? `${j.timmar || 0} tim ${j.minuter || 0} min`
+        : "–";
+    document.getElementById("dTid").innerText = tid;
     document.getElementById("dAnteckning").innerText = j.anteckning || "–";
 
     renderDetaljMaterial(j.materialLista || []);
@@ -635,6 +677,10 @@ function visaRedigera() {
 
     document.getElementById("rKund").value = currentJobb.kund || "";
     document.getElementById("rBeskrivning").value = currentJobb.projektBeskrivning || "";
+    document.getElementById("rStartDatum").value = currentJobb.startDatum || "";
+    document.getElementById("rSlutDatum").value = currentJobb.slutDatum || "";
+    document.getElementById("rTimmar").value = currentJobb.timmar || "";
+    document.getElementById("rMinuter").value = currentJobb.minuter || "";
     document.getElementById("rAnteckning").value = currentJobb.anteckning || "";
 
     byggMaterialDropdown("rMatTyp");
@@ -719,8 +765,10 @@ async function sparaRedigerat() {
             anteckning: document.getElementById("rAnteckning").value,
             littra: currentJobb.littra,
             kundTyp: currentJobb.kundTyp,
-            timmar: currentJobb.timmar,
-            minuter: currentJobb.minuter,
+            timmar: parseInt(document.getElementById("rTimmar").value) || 0,
+            minuter: parseInt(document.getElementById("rMinuter").value) || 0,
+            startDatum: document.getElementById("rStartDatum").value || null,
+            slutDatum: document.getElementById("rSlutDatum").value || null,
             fakturerad: currentJobb.fakturerad,
             littraMarkning: currentJobb.littraMarkning,
             materialLista: currentJobb.materialLista || []
@@ -730,6 +778,10 @@ async function sparaRedigerat() {
     currentJobb.kund = document.getElementById("rKund").value;
     currentJobb.projektBeskrivning = document.getElementById("rBeskrivning").value;
     currentJobb.anteckning = document.getElementById("rAnteckning").value;
+    currentJobb.timmar = parseInt(document.getElementById("rTimmar").value) || 0;
+    currentJobb.minuter = parseInt(document.getElementById("rMinuter").value) || 0;
+    currentJobb.startDatum = document.getElementById("rStartDatum").value || null;
+    currentJobb.slutDatum = document.getElementById("rSlutDatum").value || null;
 
     alert("Sparat!");
     stangRedigera();
@@ -794,7 +846,10 @@ async function skapaJobb() {
             projektBeskrivning: beskrivning,
             littra: document.getElementById("littra").value,
             kundTyp: document.getElementById("kundTyp").value,
-            datum: document.getElementById("datum").value,
+            startDatum: document.getElementById("startDatum").value || null,
+            slutDatum: document.getElementById("slutDatum").value || null,
+            timmar: parseInt(document.getElementById("timmar").value) || 0,
+            minuter: parseInt(document.getElementById("minuter").value) || 0,
             anteckning: document.getElementById("anteckning").value,
             materialLista: materialSkapa
         })

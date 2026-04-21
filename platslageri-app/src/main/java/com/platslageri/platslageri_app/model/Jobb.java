@@ -50,10 +50,9 @@ public class Jobb {
 
     public Jobb() {}
 
-    // ========================
-    // LÄGG TILL DATUM FÖR JOBB
-    // ========================  
-    private LocalDate datum;  
+    private LocalDate datum;
+    private LocalDate startDatum;
+    private LocalDate slutDatum;
 
     // ========================
     // GETTERS & SETTERS
@@ -102,13 +101,14 @@ public class Jobb {
         this.anteckning = anteckning;
     }
 
-    public LocalDate getDatum() {
-        return datum;
-    }
+    public LocalDate getDatum() { return datum; }
+    public void setDatum(LocalDate datum) { this.datum = datum; }
 
-    public void setDatum(LocalDate datum) {
-        this.datum = datum;
-    }
+    public LocalDate getStartDatum() { return startDatum; }
+    public void setStartDatum(LocalDate startDatum) { this.startDatum = startDatum; }
+
+    public LocalDate getSlutDatum() { return slutDatum; }
+    public void setSlutDatum(LocalDate slutDatum) { this.slutDatum = slutDatum; }
 
     public List<ArbetsRad> getArbetsrader() {
     return arbetsrader;

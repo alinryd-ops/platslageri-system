@@ -90,6 +90,9 @@ public class JobbController {
         jobb.setMinuter(uppdateradJobb.getMinuter());
         jobb.setFakturerad(uppdateradJobb.isFakturerad());
         jobb.setLittraMarkning(uppdateradJobb.getLittraMarkning());
+        jobb.setAnteckning(uppdateradJobb.getAnteckning());
+        jobb.setStartDatum(uppdateradJobb.getStartDatum());
+        jobb.setSlutDatum(uppdateradJobb.getSlutDatum());
 
         return jobbRepository.save(jobb);
     }
