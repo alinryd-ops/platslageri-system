@@ -106,6 +106,17 @@ public class JobbController {
     }
 
     /**
+     * Toggla fakturerad-status
+     */
+    @PatchMapping("/{jobbId}/fakturerad")
+    public Jobb toggleFakturerad(@PathVariable Long jobbId) {
+        Jobb jobb = jobbRepository.findById(jobbId)
+                .orElseThrow(() -> new NotFoundException("Jobb med ID " + jobbId + " hittades inte"));
+        jobb.setFakturerad(!jobb.isFakturerad());
+        return jobbRepository.save(jobb);
+    }
+
+    /**
      * Lägg till material
      */
     @PostMapping("/{jobbId}/material")

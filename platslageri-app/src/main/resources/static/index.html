@@ -81,11 +81,62 @@
             margin-bottom: 12px;
             border: 1px solid #2a2a2a;
             cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
         }
         .card:active { background: #252525; }
+        .card-content { flex: 1; min-width: 0; }
         .card-kund { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
         .card-beskrivning { color: #aaa; font-size: 16px; line-height: 1.4; }
         .card-datum { color: #555; font-size: 14px; margin-top: 8px; }
+
+        /* STATUS */
+        .status-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+        .status-dot.ofakturerad { background: #eab308; box-shadow: 0 0 6px #eab30866; }
+        .status-dot.fakturerad  { background: #22c55e; box-shadow: 0 0 6px #22c55e66; }
+
+        /* STATUS-BALK I DETALJ */
+        .status-bar {
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .status-info { display: flex; align-items: center; gap: 12px; }
+        .status-text { font-size: 18px; font-weight: bold; }
+        .status-text.ofakturerad { color: #eab308; }
+        .status-text.fakturerad  { color: #22c55e; }
+        .toggle-btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .toggle-btn.to-fakturerad { background: #166534; color: #fff; }
+        .toggle-btn.to-ofakturerad { background: #3a3a3a; color: #aaa; border: 1px solid #444; }
+
+        /* ÅTGÄRDSKNAPPAR */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 28px;
+        }
+        .action-row .btn { margin-top: 0; }
 
         /* FÄLT MED KOPIERINGSKNAPP */
         .field-row {
@@ -456,9 +507,18 @@
         <div class="section-header">Material</div>
         <div id="dMaterial"></div>
 
-        <div style="margin-top: 28px;">
-            <button class="btn btn-secondary" onclick="visaRedigera()">✏️ Redigera</button>
-            <button class="btn btn-danger" onclick="taBortJobb()">🗑️ Ta bort jobb</button>
+        <div class="section-header" style="margin-top:24px;">Status</div>
+        <div class="status-bar">
+            <div class="status-info">
+                <div class="status-dot" id="dStatusDot"></div>
+                <div class="status-text" id="dStatusText"></div>
+            </div>
+            <button class="toggle-btn" id="dStatusBtn" onclick="toggleFakturerad()"></button>
+        </div>
+
+        <div class="action-row">
+            <button class="btn btn-secondary" style="flex:1;" onclick="visaRedigera()">✏️ Redigera</button>
+            <button class="btn btn-danger" style="flex:1;" onclick="taBortJobb()">🗑️ Ta bort</button>
         </div>
     </div>
 </div>
@@ -591,11 +651,17 @@ async function hamtaJobb() {
         jobbData.slice().reverse().forEach(j => {
             const card = document.createElement("div");
             card.className = "card";
-            card.innerHTML = `
+            const dot = document.createElement("div");
+            dot.className = "status-dot " + (j.fakturerad ? "fakturerad" : "ofakturerad");
+            const content = document.createElement("div");
+            content.className = "card-content";
+            content.innerHTML = `
                 <div class="card-kund">${j.kund || ""}</div>
                 <div class="card-beskrivning">${j.projektBeskrivning || ""}</div>
-                ${j.datum ? `<div class="card-datum">📅 ${j.datum}</div>` : ""}
+                ${j.startDatum ? `<div class="card-datum">📅 ${j.startDatum}${j.slutDatum ? " → " + j.slutDatum : ""}</div>` : ""}
             `;
+            card.appendChild(dot);
+            card.appendChild(content);
             card.onclick = () => oppnaDetalj(j);
             lista.appendChild(card);
         });
@@ -623,6 +689,7 @@ function oppnaDetalj(j) {
     document.getElementById("dAnteckning").innerText = j.anteckning || "–";
 
     renderDetaljMaterial(j.materialLista || []);
+    uppdateraStatusUI(j.fakturerad);
 }
 
 function renderDetaljMaterial(list) {
@@ -652,6 +719,35 @@ function renderDetaljMaterial(list) {
         row.appendChild(btn);
         container.appendChild(row);
     });
+}
+
+function uppdateraStatusUI(fakturerad) {
+    const dot  = document.getElementById("dStatusDot");
+    const text = document.getElementById("dStatusText");
+    const btn  = document.getElementById("dStatusBtn");
+    if (fakturerad) {
+        dot.className  = "status-dot fakturerad";
+        text.className = "status-text fakturerad";
+        text.innerText = "✓ Fakturerad";
+        btn.className  = "toggle-btn to-ofakturerad";
+        btn.innerText  = "Markera ofakturerad";
+    } else {
+        dot.className  = "status-dot ofakturerad";
+        text.className = "status-text ofakturerad";
+        text.innerText = "● Ofakturerad";
+        btn.className  = "toggle-btn to-fakturerad";
+        btn.innerText  = "Markera fakturerad ✓";
+    }
+}
+
+async function toggleFakturerad() {
+    const res = await fetch(API_URL + "/jobb/" + currentJobb.id + "/fakturerad", {
+        method: "PATCH",
+        headers: { "X-PIN": PIN }
+    });
+    const uppdaterad = await res.json();
+    currentJobb.fakturerad = uppdaterad.fakturerad;
+    uppdateraStatusUI(currentJobb.fakturerad);
 }
 
 function stangDetalj() {
