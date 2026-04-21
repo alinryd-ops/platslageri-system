@@ -76,7 +76,7 @@
         <input id="matMangd" placeholder="Mängd">
         <input id="matEnhet" placeholder="Enhet">
 
-        <button onclick="läggTillMaterialSkapa()">+ Lägg till material</button>
+        <button onclick="laggTillMaterialSkapa()">+ Lägg till material</button>
         <button onclick="skapaJobb()">Spara jobb</button>
     </div>
 
@@ -84,7 +84,7 @@
 
 <div id="jobbDetalj" style="display:none; padding:20px;">
 
-    <button onclick="stängDetalj()">⬅ Tillbaka</button>
+    <button onclick="stangDetalj()">⬅ Tillbaka</button>
 
     <h3>Material</h3>
     <div id="detaljMaterial"></div>
@@ -93,7 +93,7 @@
         <select id="editMatTyp"></select>
         <input id="editMatMangd" placeholder="Mängd">
         <input id="editMatEnhet" placeholder="Enhet">
-        <button onclick="läggTillMaterialEdit()">+ Lägg till</button>
+        <button onclick="laggTillMaterialEdit()">+ Lägg till</button>
     </div>
 
     <p id="kundText"></p>
@@ -104,35 +104,62 @@
     <input id="beskrivningInput" style="display:none;">
     <input id="anteckningInput" style="display:none;">
 
-    <button onclick="kopieraJobb()">📋 Kopiera</button>
-    <button onclick="redigeraJobb()">✏️ Redigera</button>
-    <button id="sparaBtn" onclick="sparaJobb()" style="display:none;">💾 Spara</button>
-    <button class="danger" onclick="taBortJobb()">🗑 Ta bort</button>
+    <button onclick="kopieraJobb()"> Kopiera</button>
+    <button onclick="redigeraJobb()"> Redigera</button>
+    <button id="sparaBtn" onclick="sparaJobb()" style="display:none;"> Spara</button>
+    <button class="danger" onclick="taBortJobb()"> Ta bort</button>
 
 </div>
 
 <script>
+console.log("JS startar");
+
 const API_URL = "https://platslageri-system-1.onrender.com";
 let PIN = "";
 let currentJobb = null;
 let materialTyper = [];
+const login = document.getElementById("login");
+const app = document.getElementById("app");
+const pinInput = document.getElementById("pinInput")
 
 /* LOGIN */
 async function loggaIn() {
     PIN = pinInput.value;
     if (!PIN) return alert("Skriv PIN");
 
-    login.style.display = "none";
-    app.style.display = "block";
+    try {
+        const res = await fetch(API_URL + "/jobb/material-typer", {
+            headers: { "X-PIN": PIN }
+        });
 
-    await hämtaMaterialTyper();
+        if (res.status === 401 || res.status === 403) {
+            return alert("Fel PIN-kod");
+        }
+
+        materialTyper = await res.json();
+        
+        login.style.display = "none";
+        app.style.display = "block";
+        renderMaterialDropdown();
+        hamtaJobb();
+    } catch (err) {
+        alert("Kunde inte ansluta till servern");
+    }
+}
+
+
+/* STARTAR APPEN KORREKT*/
+async function startApp() {
+    console.log("Startar app med PIN:", PIN);
+
+    await hamtaMaterialTyper();
     renderMaterialDropdown();
 
-    hamtaJobb();
+    await hamtaJobb();
 }
 
 /* HÄMTA MATERIALTYPER */
-async function hämtaMaterialTyper() {
+async function hamtaMaterialTyper() {
     const res = await fetch(API_URL + "/jobb/material-typer", {
         headers: { "X-PIN": PIN }
     });
@@ -201,7 +228,7 @@ async function skapaJobb() {
 /* MATERIAL SKAPA */
 let materialSkapa = [];
 
-function läggTillMaterialSkapa() {
+function laggTillMaterialSkapa() {
     const typ = matTyp.value;
     const mangd = parseFloat(matMangd.value);
     const enhet = matEnhet.value;
@@ -210,7 +237,7 @@ function läggTillMaterialSkapa() {
     if (isNaN(mangd)) return alert("Fyll i mängd");
 
     materialSkapa.push({
-        typ: typ.toUpperCase(), // 🔥 säkerställer rätt enum
+        typ: typ.toUpperCase(), // säkerställer rätt enum
         mangd: mangd,
         enhet: enhet
     });
@@ -229,11 +256,13 @@ function renderMaterialSkapa() {
         const div = document.createElement("div");
         div.className = "card";
 
-        div.innerHTML = `
-            ${m.typ} - ${m.mangd} ${m.enhet}
-            <button onclick="taBortMaterialSkapa(${i})">X</button>
-        `;
+        div.innerHTML = `${m.typ} - ${m.mangd} ${m.enhet}`;
 
+        const btn = document.createElement("button");
+        btn.innerText = "X";
+        btn.onclick = () => taBortMaterialSkapa(i);
+
+        div.appendChild(btn);
         materialSkapaLista.appendChild(div);
     });
 }
@@ -255,14 +284,24 @@ async function hamtaJobb() {
     jobbData.forEach(j => {
         const div = document.createElement("div");
         div.className = "card";
-        div.innerHTML = `<b>${j.kund}</b><br>${j.projektBeskrivning}`;
-        div.onclick = () => öppnaDetalj(j);
+        
+        const kundText = document.createElement("b");
+        kundText.innerText = j.kund;
+
+        const br = document.createElement("br");
+
+        const descText = document.createTextNode(j.projektBeskrivning);
+
+        div.appendChild(kundText);
+        div.appendChild(br);
+        div.appendChild(descText);
+        div.onclick = () => oppnaDetalj(j);
         jobbLista.appendChild(div);
     });
 }
 
 /* DETALJ */
-function öppnaDetalj(j) {
+function oppnaDetalj(j) {
     currentJobb = j;
 
     jobbDetalj.style.display = "block";
@@ -279,7 +318,7 @@ function öppnaDetalj(j) {
     renderDetaljMaterial(j.materialLista || []);
 }
 
-function stängDetalj() {
+function stangDetalj() {
     jobbDetalj.style.display = "none";
     app.style.display = "block";
 }
@@ -305,26 +344,41 @@ function renderEditMaterial() {
     detaljMaterial.innerHTML = "";
 
     currentJobb.materialLista.forEach((m, i) => {
-        let options = "";
+
+        const div = document.createElement("div");
+
+        const select = document.createElement("select");
 
         materialTyper.forEach(t => {
             const value = typeof t === "string" ? t : t.name;
 
-            options += `<option value="${value}" ${m.typ === value ? 'selected' : ''}>${value}</option>`;
+            const option = document.createElement("option");
+            option.value = value;
+            option.text = value;
+
+            if (m.typ === value) option.selected = true;
+
+            select.appendChild(option);
         });
 
-        const div = document.createElement("div");
+        select.onchange = (e) => updateMaterial(i, "typ", e.target.value);
 
-        div.innerHTML = `
-            <select onchange="updateMaterial(${i}, 'typ', this.value)">
-                ${options}
-            </select>
+        const mangdInput = document.createElement("input");
+        mangdInput.value = m.mangd;
+        mangdInput.onchange = (e) => updateMaterial(i, "mangd", e.target.value);
 
-            <input value="${m.mangd}" onchange="updateMaterial(${i}, 'mangd', this.value)">
-            <input value="${m.enhet}" onchange="updateMaterial(${i}, 'enhet', this.value)">
+        const enhetInput = document.createElement("input");
+        enhetInput.value = m.enhet;
+        enhetInput.onchange = (e) => updateMaterial(i, "enhet", e.target.value);
 
-            <button onclick="taBortMaterialEdit(${i})">X</button>
-        `;
+        const btn = document.createElement("button");
+        btn.innerText = "X";
+        btn.onclick = () => taBortMaterialEdit(i);
+
+        div.appendChild(select);
+        div.appendChild(mangdInput);
+        div.appendChild(enhetInput);
+        div.appendChild(btn);
 
         detaljMaterial.appendChild(div);
     });
@@ -339,7 +393,7 @@ function taBortMaterialEdit(i) {
     renderEditMaterial();
 }
 
-function läggTillMaterialEdit() {
+function laggTillMaterialEdit() {
     currentJobb.materialLista.push({
         typ: editMatTyp.value,
         mangd: parseFloat(editMatMangd.value),
@@ -372,7 +426,7 @@ async function sparaJobb() {
     });
 
     alert("Uppdaterat!");
-    stängDetalj();
+    stangDetalj();
     hamtaJobb();
 }
 
@@ -386,7 +440,7 @@ async function taBortJobb() {
     });
 
     alert("Borttagen");
-    stängDetalj();
+    stangDetalj();
     hamtaJobb();
 }
 
