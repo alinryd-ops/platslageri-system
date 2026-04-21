@@ -1,131 +1,490 @@
 <!DOCTYPE html>
-<html>
+<html lang="sv">
 <head>
+    <meta charset="UTF-8">
     <title>Plåtslageri</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
-        body { font-family: Arial; margin: 0; background: #f5f6fa; }
-        header { background: #0f172a; color: white; padding: 15px; text-align: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .tabs { display: flex; background: white; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; }
-        .active { border-bottom: 3px solid #2563eb; font-weight: bold; }
-
-        .content { padding: 15px; }
-
-        input, select {
-            width: 100%; padding: 10px; margin-bottom: 10px;
-            border-radius: 8px; border: 1px solid #ccc;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #121212;
+            color: #ffffff;
+            font-size: 18px;
+            min-height: 100vh;
         }
 
-        button {
-            padding: 12px; border: none; border-radius: 10px;
-            background: #2563eb; color: white; width: 100%; margin-bottom: 10px;
+        /* HEADER */
+        .topbar {
+            background: #1e1e1e;
+            padding: 18px 20px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            border-bottom: 1px solid #2a2a2a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            position: relative;
+        }
+        .topbar-back {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 4px 10px;
         }
 
-        .danger { background: red; }
+        /* PAGES */
+        .page {
+            padding: 16px;
+            padding-bottom: 90px;
+        }
 
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #1e1e1e;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            height: 72px;
+            z-index: 10;
+        }
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: #666;
+            font-size: 13px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .nav-btn.active { color: #3b82f6; }
+        .nav-icon { font-size: 26px; }
+
+        /* CARDS */
         .card {
-            background: white; padding: 15px;
-            border-radius: 15px; margin-bottom: 10px;
+            background: #1e1e1e;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 12px;
+            border: 1px solid #2a2a2a;
+            cursor: pointer;
+        }
+        .card:active { background: #252525; }
+        .card-kund { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .card-beskrivning { color: #aaa; font-size: 16px; line-height: 1.4; }
+        .card-datum { color: #555; font-size: 14px; margin-top: 8px; }
+
+        /* FÄLT MED KOPIERINGSKNAPP */
+        .field-row {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #2a2a2a;
+        }
+        .field-row .field-info { flex: 1; min-width: 0; }
+        .field-label { color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .field-value { font-size: 18px; word-break: break-word; }
+        .copy-btn {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 10px;
+            padding: 0;
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .copy-btn:active { background: #3a3a3a; }
+        .copy-btn.copied { background: #166534; border-color: #16a34a; }
+
+        /* FORMULÄR */
+        .form-label {
+            display: block;
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            margin-top: 16px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 16px;
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
+        select option { background: #1e1e1e; }
+
+        /* KNAPPAR */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:active { background: #1d4ed8; }
+        .btn-danger { background: #991b1b; color: white; }
+        .btn-danger:active { background: #7f1d1d; }
+        .btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #3a3a3a; }
+        .btn-secondary:active { background: #333; }
+
+        /* SEKTION */
+        .section-header {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #555;
+            margin: 24px 0 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2a2a2a;
         }
 
-        #app { display: none; }
+        /* MATERIAL RAD */
+        .material-edit-row {
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .material-edit-row select,
+        .material-edit-row input {
+            padding: 10px 12px;
+            font-size: 16px;
+            margin-bottom: 0;
+        }
+        .material-edit-row select { flex: 2; min-width: 100px; }
+        .material-edit-row .mangd-input { flex: 1; min-width: 60px; }
+        .material-edit-row .enhet-input { flex: 1; min-width: 60px; }
+        .remove-btn {
+            background: #991b1b;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 10px 14px;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* LOGIN */
+        #loginView {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 28px;
+        }
+        .login-logo {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .login-title {
+            font-size: 30px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .login-subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 48px;
+            font-size: 16px;
+        }
+        .login-label {
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        #pinInput {
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .login-btn {
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .login-btn:active { background: #1d4ed8; }
+
+        /* TOM LISTA */
+        .empty-state {
+            text-align: center;
+            color: #444;
+            padding: 60px 20px;
+        }
+        .empty-state div:first-child { font-size: 48px; margin-bottom: 12px; }
+
+        /* UTILITY */
+        .hidden { display: none !important; }
+
+        /* UPPDATERA-KNAPP */
+        .refresh-btn {
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            color: #aaa;
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
 
-<header>Plåtslageri</header>
-
-<div id="login" class="content">
-    <input id="pinInput" type="password" placeholder="PIN">
-    <button onclick="loggaIn()">Logga in</button>
+<!-- ========== LOGIN ========== -->
+<div id="loginView">
+    <div class="login-logo">🔧</div>
+    <div class="login-title">Plåtslageri</div>
+    <div class="login-subtitle">Logga in med din PIN-kod</div>
+    <div class="login-label">PIN-kod</div>
+    <input id="pinInput" type="password" inputmode="numeric" placeholder="• • • •">
+    <button class="login-btn" onclick="loggaIn()">Logga in</button>
 </div>
 
-<div id="app">
+<!-- ========== APP (jobb + skapa) ========== -->
+<div id="appView" class="hidden">
 
-    <div class="tabs">
-        <div class="tab active" onclick="visaTab('jobb')">Jobb</div>
-        <div class="tab" onclick="visaTab('skapa')">Skapa</div>
-    </div>
+    <div class="topbar">Plåtslageri</div>
 
-    <div id="jobb" class="content">
-        <button onclick="hamtaJobb()">Uppdatera</button>
+    <!-- JOBB-LISTA -->
+    <div id="jobbListView" class="page">
+        <button class="refresh-btn" onclick="hamtaJobb()">↻ Uppdatera lista</button>
         <div id="jobbLista"></div>
     </div>
 
-    <div id="skapa" class="content" style="display:none;">
-        <input id="kund" placeholder="Kund">
-        <input id="beskrivning" placeholder="Beskrivning">
+    <!-- SKAPA JOBB -->
+    <div id="skapaView" class="page hidden">
+
+        <span class="form-label">Kund</span>
+        <input id="kund" placeholder="Kundnamn">
+
+        <span class="form-label">Beskrivning</span>
+        <input id="beskrivning" placeholder="Vad ska göras?">
+
+        <span class="form-label">Littra / Referens</span>
         <input id="littra" placeholder="Littra">
 
+        <span class="form-label">Kundtyp</span>
         <select id="kundTyp">
             <option value="PRIVAT">Privat</option>
             <option value="FÖRETAG">Företag</option>
         </select>
 
+        <span class="form-label">Datum</span>
         <input id="datum" type="date">
-        <input id="anteckning" placeholder="Anteckning">
 
-        <h3>Material</h3>
+        <span class="form-label">Anteckning</span>
+        <textarea id="anteckning" placeholder="Beskriv vad som gjordes, material, detaljer..."></textarea>
+
+        <div class="section-header">Material</div>
 
         <div id="materialSkapaLista"></div>
 
+        <span class="form-label">Materialtyp</span>
         <select id="matTyp"></select>
-        <input id="matMangd" placeholder="Mängd">
-        <input id="matEnhet" placeholder="Enhet">
+        <span class="form-label">Mängd</span>
+        <input id="matMangd" type="number" inputmode="decimal" placeholder="0">
+        <span class="form-label">Enhet</span>
+        <input id="matEnhet" placeholder="t.ex. m², st, m">
 
-        <button onclick="laggTillMaterialSkapa()">+ Lägg till material</button>
-        <button onclick="skapaJobb()">Spara jobb</button>
+        <button class="btn btn-secondary" onclick="laggTillMaterialSkapa()" style="margin-top:12px;">
+            + Lägg till material
+        </button>
+
+        <div style="margin-top:24px;">
+            <button class="btn btn-primary" onclick="skapaJobb()">💾 Spara jobb</button>
+        </div>
     </div>
 
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" id="navJobb" onclick="visaTab('jobb')">
+            <span class="nav-icon">📋</span>
+            <span>Jobb</span>
+        </button>
+        <button class="nav-btn" id="navSkapa" onclick="visaTab('skapa')">
+            <span class="nav-icon">➕</span>
+            <span>Nytt jobb</span>
+        </button>
+    </nav>
 </div>
 
-<div id="jobbDetalj" style="display:none; padding:20px;">
-
-    <button onclick="stangDetalj()">⬅ Tillbaka</button>
-
-    <h3>Material</h3>
-    <div id="detaljMaterial"></div>
-
-    <div id="editMaterial" style="display:none;">
-        <select id="editMatTyp"></select>
-        <input id="editMatMangd" placeholder="Mängd">
-        <input id="editMatEnhet" placeholder="Enhet">
-        <button onclick="laggTillMaterialEdit()">+ Lägg till</button>
+<!-- ========== DETALJ ========== -->
+<div id="detaljView" class="hidden">
+    <div class="topbar">
+        <button class="topbar-back" onclick="stangDetalj()">←</button>
+        Jobbdetalj
     </div>
+    <div class="page">
 
-    <p id="kundText"></p>
-    <p id="beskrivningText"></p>
-    <p id="anteckningText"></p>
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Kund</div>
+                <div class="field-value" id="dKund"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dKund', this)" title="Kopiera">📋</button>
+        </div>
 
-    <input id="kundInput" style="display:none;">
-    <input id="beskrivningInput" style="display:none;">
-    <input id="anteckningInput" style="display:none;">
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Beskrivning</div>
+                <div class="field-value" id="dBeskrivning"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dBeskrivning', this)" title="Kopiera">📋</button>
+        </div>
 
-    <button onclick="kopieraJobb()"> Kopiera</button>
-    <button onclick="redigeraJobb()"> Redigera</button>
-    <button id="sparaBtn" onclick="sparaJobb()" style="display:none;"> Spara</button>
-    <button class="danger" onclick="taBortJobb()"> Ta bort</button>
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Littra</div>
+                <div class="field-value" id="dLittra"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dLittra', this)" title="Kopiera">📋</button>
+        </div>
 
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Kundtyp</div>
+                <div class="field-value" id="dKundTyp"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dKundTyp', this)" title="Kopiera">📋</button>
+        </div>
+
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Datum</div>
+                <div class="field-value" id="dDatum"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dDatum', this)" title="Kopiera">📋</button>
+        </div>
+
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Anteckning</div>
+                <div class="field-value" id="dAnteckning" style="white-space: pre-wrap;"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dAnteckning', this)" title="Kopiera">📋</button>
+        </div>
+
+        <div class="section-header">Material</div>
+        <div id="dMaterial"></div>
+
+        <div style="margin-top: 28px;">
+            <button class="btn btn-secondary" onclick="visaRedigera()">✏️ Redigera</button>
+            <button class="btn btn-danger" onclick="taBortJobb()">🗑️ Ta bort jobb</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== REDIGERA ========== -->
+<div id="redigeraView" class="hidden">
+    <div class="topbar">
+        <button class="topbar-back" onclick="stangRedigera()">←</button>
+        Redigera jobb
+    </div>
+    <div class="page">
+
+        <span class="form-label">Kund</span>
+        <input id="rKund" placeholder="Kundnamn">
+
+        <span class="form-label">Beskrivning</span>
+        <input id="rBeskrivning" placeholder="Projektbeskrivning">
+
+        <span class="form-label">Anteckning</span>
+        <textarea id="rAnteckning" placeholder="Anteckning"></textarea>
+
+        <div class="section-header">Material</div>
+        <div id="rMaterialLista"></div>
+
+        <span class="form-label">Lägg till material</span>
+        <select id="rMatTyp"></select>
+        <span class="form-label">Mängd</span>
+        <input id="rMatMangd" type="number" inputmode="decimal" placeholder="0">
+        <span class="form-label">Enhet</span>
+        <input id="rMatEnhet" placeholder="t.ex. m², st, m">
+        <button class="btn btn-secondary" onclick="laggTillMaterialRedigera()" style="margin-top:12px;">
+            + Lägg till material
+        </button>
+
+        <div style="margin-top: 24px;">
+            <button class="btn btn-primary" onclick="sparaRedigerat()">💾 Spara ändringar</button>
+        </div>
+    </div>
 </div>
 
 <script>
-console.log("JS startar");
-
 const API_URL = "https://platslageri-system-1.onrender.com";
 let PIN = "";
 let currentJobb = null;
 let materialTyper = [];
-const login = document.getElementById("login");
-const app = document.getElementById("app");
-const pinInput = document.getElementById("pinInput")
+let materialSkapa = [];
 
 /* LOGIN */
 async function loggaIn() {
-    PIN = pinInput.value;
-    if (!PIN) return alert("Skriv PIN");
+    PIN = document.getElementById("pinInput").value.trim();
+    if (!PIN) return alert("Skriv PIN-kod");
 
     try {
         const res = await fetch(API_URL + "/jobb/material-typer", {
@@ -137,333 +496,320 @@ async function loggaIn() {
         }
 
         materialTyper = await res.json();
-        
-        login.style.display = "none";
-        app.style.display = "block";
-        renderMaterialDropdown();
+        document.getElementById("loginView").classList.add("hidden");
+        document.getElementById("appView").classList.remove("hidden");
+        byggMaterialDropdown("matTyp");
         hamtaJobb();
     } catch (err) {
-        alert("Kunde inte ansluta till servern");
+        alert("Kunde inte ansluta till servern. Försök igen.");
     }
 }
 
-
-/* STARTAR APPEN KORREKT*/
-async function startApp() {
-    console.log("Startar app med PIN:", PIN);
-
-    await hamtaMaterialTyper();
-    renderMaterialDropdown();
-
-    await hamtaJobb();
-}
-
-/* HÄMTA MATERIALTYPER */
-async function hamtaMaterialTyper() {
-    const res = await fetch(API_URL + "/jobb/material-typer", {
-        headers: { "X-PIN": PIN }
+/* KOPIERA FÄLT */
+function kopieraFalt(elementId, btn) {
+    const text = document.getElementById(elementId).innerText.trim();
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = "✓";
+        btn.classList.add("copied");
+        setTimeout(() => {
+            btn.textContent = "📋";
+            btn.classList.remove("copied");
+        }, 1500);
     });
-
-    materialTyper = await res.json();
 }
 
-/* DROPDOWN EDIT */
-function renderMaterialDropdown() {
-    matTyp.innerHTML = '<option value="">Välj material</option>';
-
-    materialTyper.forEach(t => {
-        const opt = document.createElement("option");
-
-        const value = typeof t === "string" ? t : t.name;
-
-        opt.value = value;
-        opt.text = value;
-
-        matTyp.appendChild(opt);
+function kopieraText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = "✓";
+        btn.classList.add("copied");
+        setTimeout(() => {
+            btn.textContent = "📋";
+            btn.classList.remove("copied");
+        }, 1500);
     });
 }
 
 /* TABS */
 function visaTab(tab) {
-    jobb.style.display = "none";
-    skapa.style.display = "none";
-
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-
-    if (tab === "jobb") {
-        jobb.style.display = "block";
-        document.querySelectorAll(".tab")[0].classList.add("active");
-    } else {
-        skapa.style.display = "block";
-        document.querySelectorAll(".tab")[1].classList.add("active");
-    }
-}
-
-/* SKAPA */
-async function skapaJobb() {
-    await fetch(API_URL + "/jobb", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-PIN": PIN
-        },
-        body: JSON.stringify({
-            kund: kund.value,
-            projektBeskrivning: beskrivning.value,
-            littra: littra.value,
-            kundTyp: kundTyp.value,
-            datum: datum.value,
-            anteckning: anteckning.value,
-            materialLista: materialSkapa
-        })
-    });
-
-    alert("Sparat!");
-    materialSkapa = [];
-    renderMaterialSkapa();
-    visaTab('jobb');
-    hamtaJobb();
-}
-
-/* MATERIAL SKAPA */
-let materialSkapa = [];
-
-function laggTillMaterialSkapa() {
-    const typ = matTyp.value;
-    const mangd = parseFloat(matMangd.value);
-    const enhet = matEnhet.value;
-
-    if (!typ) return alert("Välj material");
-    if (isNaN(mangd)) return alert("Fyll i mängd");
-
-    materialSkapa.push({
-        typ: typ.toUpperCase(), // säkerställer rätt enum
-        mangd: mangd,
-        enhet: enhet
-    });
-
-    renderMaterialSkapa();
-
-    matTyp.value = "";
-    matMangd.value = "";
-    matEnhet.value = "";
-}
-
-function renderMaterialSkapa() {
-    materialSkapaLista.innerHTML = "";
-
-    materialSkapa.forEach((m, i) => {
-        const div = document.createElement("div");
-        div.className = "card";
-
-        div.innerHTML = `${m.typ} - ${m.mangd} ${m.enhet}`;
-
-        const btn = document.createElement("button");
-        btn.innerText = "X";
-        btn.onclick = () => taBortMaterialSkapa(i);
-
-        div.appendChild(btn);
-        materialSkapaLista.appendChild(div);
-    });
-}
-
-function taBortMaterialSkapa(i) {
-    materialSkapa.splice(i, 1);
-    renderMaterialSkapa();
+    document.getElementById("jobbListView").classList.toggle("hidden", tab !== "jobb");
+    document.getElementById("skapaView").classList.toggle("hidden", tab !== "skapa");
+    document.getElementById("navJobb").classList.toggle("active", tab === "jobb");
+    document.getElementById("navSkapa").classList.toggle("active", tab === "skapa");
 }
 
 /* HÄMTA JOBB */
 async function hamtaJobb() {
-    const res = await fetch(API_URL + "/jobb", {
-        headers: { "X-PIN": PIN }
-    });
+    const lista = document.getElementById("jobbLista");
+    lista.innerHTML = "<div style='color:#555;text-align:center;padding:20px;'>Laddar...</div>";
+    try {
+        const res = await fetch(API_URL + "/jobb", { headers: { "X-PIN": PIN } });
+        const jobbData = await res.json();
+        lista.innerHTML = "";
 
-    const jobbData = await res.json();
-    jobbLista.innerHTML = "";
+        if (jobbData.length === 0) {
+            lista.innerHTML = "<div class='empty-state'><div>📋</div><div>Inga jobb ännu</div></div>";
+            return;
+        }
 
-    jobbData.forEach(j => {
-        const div = document.createElement("div");
-        div.className = "card";
-        
-        const kundText = document.createElement("b");
-        kundText.innerText = j.kund;
-
-        const br = document.createElement("br");
-
-        const descText = document.createTextNode(j.projektBeskrivning);
-
-        div.appendChild(kundText);
-        div.appendChild(br);
-        div.appendChild(descText);
-        div.onclick = () => oppnaDetalj(j);
-        jobbLista.appendChild(div);
-    });
+        jobbData.slice().reverse().forEach(j => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+                <div class="card-kund">${j.kund || ""}</div>
+                <div class="card-beskrivning">${j.projektBeskrivning || ""}</div>
+                ${j.datum ? `<div class="card-datum">📅 ${j.datum}</div>` : ""}
+            `;
+            card.onclick = () => oppnaDetalj(j);
+            lista.appendChild(card);
+        });
+    } catch (err) {
+        lista.innerHTML = "<div style='color:#f87171;text-align:center;padding:20px;'>Kunde inte ladda jobb</div>";
+    }
 }
 
 /* DETALJ */
 function oppnaDetalj(j) {
     currentJobb = j;
+    document.getElementById("appView").classList.add("hidden");
+    document.getElementById("detaljView").classList.remove("hidden");
 
-    jobbDetalj.style.display = "block";
-    app.style.display = "none";
-
-    kundText.innerText = j.kund;
-    beskrivningText.innerText = j.projektBeskrivning;
-    anteckningText.innerText = j.anteckning || "";
-
-    kundInput.value = j.kund;
-    beskrivningInput.value = j.projektBeskrivning;
-    anteckningInput.value = j.anteckning || "";
+    document.getElementById("dKund").innerText = j.kund || "–";
+    document.getElementById("dBeskrivning").innerText = j.projektBeskrivning || "–";
+    document.getElementById("dLittra").innerText = j.littra || "–";
+    document.getElementById("dKundTyp").innerText = j.kundTyp || "–";
+    document.getElementById("dDatum").innerText = j.datum || "–";
+    document.getElementById("dAnteckning").innerText = j.anteckning || "–";
 
     renderDetaljMaterial(j.materialLista || []);
 }
 
+function renderDetaljMaterial(list) {
+    const container = document.getElementById("dMaterial");
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+        container.innerHTML = "<div style='color:#555;font-size:16px;'>Inget material registrerat</div>";
+        return;
+    }
+
+    list.forEach(m => {
+        const text = `${m.typ} – ${m.mangd} ${m.enhet}`;
+        const row = document.createElement("div");
+        row.className = "field-row";
+        row.innerHTML = `
+            <div class="field-info">
+                <div class="field-label">Material</div>
+                <div class="field-value">${text}</div>
+            </div>
+        `;
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.textContent = "📋";
+        btn.title = "Kopiera";
+        btn.onclick = function () { kopieraText(text, this); };
+        row.appendChild(btn);
+        container.appendChild(row);
+    });
+}
+
 function stangDetalj() {
-    jobbDetalj.style.display = "none";
-    app.style.display = "block";
+    document.getElementById("detaljView").classList.add("hidden");
+    document.getElementById("appView").classList.remove("hidden");
+    hamtaJobb();
+}
+
+/* TA BORT */
+async function taBortJobb() {
+    if (!confirm("Ta bort detta jobb?")) return;
+    await fetch(API_URL + "/jobb/" + currentJobb.id, {
+        method: "DELETE",
+        headers: { "X-PIN": PIN }
+    });
+    stangDetalj();
 }
 
 /* REDIGERA */
-function redigeraJobb() {
-    kundInput.style.display = "block";
-    beskrivningInput.style.display = "block";
-    anteckningInput.style.display = "block";
+function visaRedigera() {
+    document.getElementById("detaljView").classList.add("hidden");
+    document.getElementById("redigeraView").classList.remove("hidden");
 
-    kundText.style.display = "none";
-    beskrivningText.style.display = "none";
-    anteckningText.style.display = "none";
+    document.getElementById("rKund").value = currentJobb.kund || "";
+    document.getElementById("rBeskrivning").value = currentJobb.projektBeskrivning || "";
+    document.getElementById("rAnteckning").value = currentJobb.anteckning || "";
 
-    editMaterial.style.display = "block";
-    sparaBtn.style.display = "block";
-
-    renderEditMaterial();
+    byggMaterialDropdown("rMatTyp");
+    renderRedigeraMaterial();
 }
 
-/* MATERIAL EDIT */
-function renderEditMaterial() {
-    detaljMaterial.innerHTML = "";
+function stangRedigera() {
+    document.getElementById("redigeraView").classList.add("hidden");
+    document.getElementById("detaljView").classList.remove("hidden");
+    oppnaDetalj(currentJobb);
+}
 
-    currentJobb.materialLista.forEach((m, i) => {
+function renderRedigeraMaterial() {
+    const container = document.getElementById("rMaterialLista");
+    container.innerHTML = "";
+    const lista = currentJobb.materialLista || [];
 
-        const div = document.createElement("div");
+    lista.forEach((m, i) => {
+        const row = document.createElement("div");
+        row.className = "material-edit-row";
 
-        const select = document.createElement("select");
-
+        const sel = document.createElement("select");
+        sel.className = "material-edit-row select";
+        sel.style.cssText = "flex:2;min-width:100px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;padding:10px;color:#fff;font-size:16px;";
         materialTyper.forEach(t => {
-            const value = typeof t === "string" ? t : t.name;
-
-            const option = document.createElement("option");
-            option.value = value;
-            option.text = value;
-
-            if (m.typ === value) option.selected = true;
-
-            select.appendChild(option);
+            const v = typeof t === "string" ? t : t.name;
+            const opt = document.createElement("option");
+            opt.value = v; opt.text = v;
+            if (m.typ === v) opt.selected = true;
+            sel.appendChild(opt);
         });
+        sel.onchange = e => lista[i].typ = e.target.value;
 
-        select.onchange = (e) => updateMaterial(i, "typ", e.target.value);
+        const mangdIn = document.createElement("input");
+        mangdIn.type = "number";
+        mangdIn.inputMode = "decimal";
+        mangdIn.value = m.mangd;
+        mangdIn.style.cssText = "width:70px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;padding:10px;color:#fff;font-size:16px;";
+        mangdIn.onchange = e => lista[i].mangd = parseFloat(e.target.value);
 
-        const mangdInput = document.createElement("input");
-        mangdInput.value = m.mangd;
-        mangdInput.onchange = (e) => updateMaterial(i, "mangd", e.target.value);
+        const enhetIn = document.createElement("input");
+        enhetIn.value = m.enhet;
+        enhetIn.style.cssText = "width:70px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;padding:10px;color:#fff;font-size:16px;";
+        enhetIn.onchange = e => lista[i].enhet = e.target.value;
 
-        const enhetInput = document.createElement("input");
-        enhetInput.value = m.enhet;
-        enhetInput.onchange = (e) => updateMaterial(i, "enhet", e.target.value);
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "✕";
+        delBtn.className = "remove-btn";
+        delBtn.onclick = () => { lista.splice(i, 1); renderRedigeraMaterial(); };
 
-        const btn = document.createElement("button");
-        btn.innerText = "X";
-        btn.onclick = () => taBortMaterialEdit(i);
-
-        div.appendChild(select);
-        div.appendChild(mangdInput);
-        div.appendChild(enhetInput);
-        div.appendChild(btn);
-
-        detaljMaterial.appendChild(div);
+        row.appendChild(sel);
+        row.appendChild(mangdIn);
+        row.appendChild(enhetIn);
+        row.appendChild(delBtn);
+        container.appendChild(row);
     });
 }
 
-function updateMaterial(i, f, v) {
-    currentJobb.materialLista[i][f] = v;
+function laggTillMaterialRedigera() {
+    const typ = document.getElementById("rMatTyp").value;
+    const mangd = parseFloat(document.getElementById("rMatMangd").value);
+    const enhet = document.getElementById("rMatEnhet").value;
+
+    if (!typ) return alert("Välj material");
+    if (isNaN(mangd)) return alert("Fyll i mängd");
+
+    if (!currentJobb.materialLista) currentJobb.materialLista = [];
+    currentJobb.materialLista.push({ typ: typ.toUpperCase(), mangd, enhet });
+    renderRedigeraMaterial();
+
+    document.getElementById("rMatMangd").value = "";
+    document.getElementById("rMatEnhet").value = "";
 }
 
-function taBortMaterialEdit(i) {
-    currentJobb.materialLista.splice(i, 1);
-    renderEditMaterial();
-}
-
-function laggTillMaterialEdit() {
-    currentJobb.materialLista.push({
-        typ: editMatTyp.value,
-        mangd: parseFloat(editMatMangd.value),
-        enhet: editMatEnhet.value
-    });
-
-    renderEditMaterial();
-}
-
-/* SPARA */
-async function sparaJobb() {
+async function sparaRedigerat() {
     await fetch(API_URL + "/jobb/" + currentJobb.id, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "X-PIN": PIN
-        },
+        headers: { "Content-Type": "application/json", "X-PIN": PIN },
         body: JSON.stringify({
-            kund: kundInput.value,
-            projektBeskrivning: beskrivningInput.value,
-            anteckning: anteckningInput.value,
+            kund: document.getElementById("rKund").value,
+            projektBeskrivning: document.getElementById("rBeskrivning").value,
+            anteckning: document.getElementById("rAnteckning").value,
             littra: currentJobb.littra,
             kundTyp: currentJobb.kundTyp,
             timmar: currentJobb.timmar,
             minuter: currentJobb.minuter,
             fakturerad: currentJobb.fakturerad,
             littraMarkning: currentJobb.littraMarkning,
-            materialLista: currentJobb.materialLista
+            materialLista: currentJobb.materialLista || []
         })
     });
 
-    alert("Uppdaterat!");
-    stangDetalj();
-    hamtaJobb();
+    currentJobb.kund = document.getElementById("rKund").value;
+    currentJobb.projektBeskrivning = document.getElementById("rBeskrivning").value;
+    currentJobb.anteckning = document.getElementById("rAnteckning").value;
+
+    alert("Sparat!");
+    stangRedigera();
 }
 
-/* DELETE */
-async function taBortJobb() {
-    if (!confirm("Ta bort?")) return;
-
-    await fetch(API_URL + "/jobb/" + currentJobb.id, {
-        method: "DELETE",
-        headers: { "X-PIN": PIN }
-    });
-
-    alert("Borttagen");
-    stangDetalj();
-    hamtaJobb();
-}
-
-/* VIEW MATERIAL */
-function renderDetaljMaterial(list) {
-    detaljMaterial.innerHTML = "";
-
-    list.forEach(m => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerText = `${m.typ} - ${m.mangd} ${m.enhet}`;
-        detaljMaterial.appendChild(div);
+/* SKAPA JOBB */
+function byggMaterialDropdown(selectId) {
+    const sel = document.getElementById(selectId);
+    sel.innerHTML = '<option value="">Välj material</option>';
+    materialTyper.forEach(t => {
+        const v = typeof t === "string" ? t : t.name;
+        const opt = document.createElement("option");
+        opt.value = v; opt.text = v;
+        sel.appendChild(opt);
     });
 }
 
-/* COPY */
-function kopieraJobb() {
-    navigator.clipboard.writeText(
-        currentJobb.kund + "\n" + currentJobb.projektBeskrivning
-    );
-    alert("Kopierat!");
+function laggTillMaterialSkapa() {
+    const typ = document.getElementById("matTyp").value;
+    const mangd = parseFloat(document.getElementById("matMangd").value);
+    const enhet = document.getElementById("matEnhet").value;
+
+    if (!typ) return alert("Välj material");
+    if (isNaN(mangd)) return alert("Fyll i mängd");
+
+    materialSkapa.push({ typ: typ.toUpperCase(), mangd, enhet });
+    renderMaterialSkapaLista();
+
+    document.getElementById("matTyp").value = "";
+    document.getElementById("matMangd").value = "";
+    document.getElementById("matEnhet").value = "";
+}
+
+function renderMaterialSkapaLista() {
+    const container = document.getElementById("materialSkapaLista");
+    container.innerHTML = "";
+    materialSkapa.forEach((m, i) => {
+        const row = document.createElement("div");
+        row.className = "material-edit-row";
+        row.style.justifyContent = "space-between";
+        row.innerHTML = `<span style="font-size:17px;">${m.typ} – ${m.mangd} ${m.enhet}</span>`;
+        const btn = document.createElement("button");
+        btn.textContent = "✕";
+        btn.className = "remove-btn";
+        btn.onclick = () => { materialSkapa.splice(i, 1); renderMaterialSkapaLista(); };
+        row.appendChild(btn);
+        container.appendChild(row);
+    });
+}
+
+async function skapaJobb() {
+    const kund = document.getElementById("kund").value.trim();
+    const beskrivning = document.getElementById("beskrivning").value.trim();
+    if (!kund) return alert("Fyll i kundnamn");
+    if (!beskrivning) return alert("Fyll i beskrivning");
+
+    await fetch(API_URL + "/jobb", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-PIN": PIN },
+        body: JSON.stringify({
+            kund,
+            projektBeskrivning: beskrivning,
+            littra: document.getElementById("littra").value,
+            kundTyp: document.getElementById("kundTyp").value,
+            datum: document.getElementById("datum").value,
+            anteckning: document.getElementById("anteckning").value,
+            materialLista: materialSkapa
+        })
+    });
+
+    alert("Jobb sparat!");
+    materialSkapa = [];
+    renderMaterialSkapaLista();
+    document.getElementById("kund").value = "";
+    document.getElementById("beskrivning").value = "";
+    document.getElementById("littra").value = "";
+    document.getElementById("anteckning").value = "";
+    visaTab("jobb");
+    hamtaJobb();
 }
 </script>
-
 </body>
 </html>
