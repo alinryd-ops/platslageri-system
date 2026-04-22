@@ -366,6 +366,13 @@
         <div id="jobbLista"></div>
     </div>
 
+    <!-- UPPGIFTER -->
+    <div id="uppgifterView" class="page hidden">
+        <button class="refresh-btn" onclick="hamtaUppgifter()">↻ Uppdatera lista</button>
+        <div id="uppgifterLista"></div>
+        <button class="btn btn-primary" onclick="visaSkapaUppgift()" style="margin-top:16px;">+ Ny uppgift</button>
+    </div>
+
     <!-- SKAPA JOBB -->
     <div id="skapaView" class="page hidden">
 
@@ -428,6 +435,10 @@
         <button class="nav-btn" id="navSkapa" onclick="visaTab('skapa')">
             <span class="nav-icon">➕</span>
             <span>Nytt jobb</span>
+        </button>
+        <button class="nav-btn" id="navUppgifter" onclick="visaTab('uppgifter')">
+            <span class="nav-icon">📝</span>
+            <span>Uppgifter</span>
         </button>
     </nav>
 </div>
@@ -571,6 +582,30 @@
     </div>
 </div>
 
+<!-- ========== SKAPA UPPGIFT ========== -->
+<div id="skapaUppgiftView" class="hidden">
+    <div class="topbar">
+        <button class="topbar-back" onclick="stangSkapaUppgift()">←</button>
+        Ny uppgift
+    </div>
+    <div class="page">
+
+        <span class="form-label">Titel *</span>
+        <input id="uTitel" placeholder="Vad ska göras?">
+
+        <span class="form-label">Beskrivning</span>
+        <textarea id="uBeskrivning" placeholder="Mer detaljer..."></textarea>
+
+        <span class="form-label">Adress</span>
+        <input id="uAdress" placeholder="Gatuadress, stad">
+
+        <span class="form-label">Telefonnummer</span>
+        <input id="uTelefon" type="tel" inputmode="tel" placeholder="070 000 00 00">
+
+        <button class="btn btn-primary" onclick="skapaUppgift()" style="margin-top:24px;">💾 Spara uppgift</button>
+    </div>
+</div>
+
 <script>
 const API_URL = "https://platslageri-system-1.onrender.com";
 let PIN = "";
@@ -630,8 +665,11 @@ function kopieraText(text, btn) {
 function visaTab(tab) {
     document.getElementById("jobbListView").classList.toggle("hidden", tab !== "jobb");
     document.getElementById("skapaView").classList.toggle("hidden", tab !== "skapa");
+    document.getElementById("uppgifterView").classList.toggle("hidden", tab !== "uppgifter");
     document.getElementById("navJobb").classList.toggle("active", tab === "jobb");
     document.getElementById("navSkapa").classList.toggle("active", tab === "skapa");
+    document.getElementById("navUppgifter").classList.toggle("active", tab === "uppgifter");
+    if (tab === "uppgifter") hamtaUppgifter();
 }
 
 /* HÄMTA JOBB */
@@ -926,6 +964,137 @@ function renderMaterialSkapaLista() {
         row.appendChild(btn);
         container.appendChild(row);
     });
+}
+
+/* UPPGIFTER */
+async function hamtaUppgifter() {
+    const lista = document.getElementById("uppgifterLista");
+    lista.innerHTML = "<div style='color:#555;text-align:center;padding:20px;'>Laddar...</div>";
+    try {
+        const res = await fetch(API_URL + "/uppgifter", { headers: { "X-PIN": PIN } });
+        const data = await res.json();
+        lista.innerHTML = "";
+        if (data.length === 0) {
+            lista.innerHTML = "<div class='empty-state'><div>📝</div><div>Inga uppgifter ännu</div></div>";
+            return;
+        }
+        data.slice().reverse().forEach(u => renderUppgiftKort(u, lista));
+    } catch (err) {
+        lista.innerHTML = "<div style='color:#f87171;text-align:center;padding:20px;'>Kunde inte ladda uppgifter</div>";
+    }
+}
+
+function renderUppgiftKort(u, container) {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.cssText = "cursor:default;flex-direction:column;align-items:stretch;gap:10px;";
+
+    const header = document.createElement("div");
+    header.style.cssText = "display:flex;align-items:center;gap:12px;";
+    const dot = document.createElement("div");
+    dot.className = "status-dot " + (u.utford ? "fakturerad" : "ofakturerad");
+    const titel = document.createElement("div");
+    titel.style.cssText = "font-size:20px;font-weight:bold;flex:1;" + (u.utford ? "text-decoration:line-through;color:#666;" : "");
+    titel.textContent = u.titel;
+    header.appendChild(dot);
+    header.appendChild(titel);
+    card.appendChild(header);
+
+    if (u.beskrivning) {
+        const besk = document.createElement("div");
+        besk.style.cssText = "color:#aaa;font-size:16px;line-height:1.4;";
+        besk.textContent = u.beskrivning;
+        card.appendChild(besk);
+    }
+
+    if (u.adress) {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:center;gap:10px;background:#252525;border-radius:10px;padding:10px 12px;";
+        row.innerHTML = `<span style="color:#666;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;min-width:58px;">Adress</span><span style="flex:1;font-size:16px;">${u.adress}</span>`;
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.style.cssText = "width:36px;height:36px;font-size:16px;";
+        btn.textContent = "📋";
+        btn.onclick = function() { kopieraText(u.adress, this); };
+        row.appendChild(btn);
+        card.appendChild(row);
+    }
+
+    if (u.telefon) {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:center;gap:10px;background:#252525;border-radius:10px;padding:10px 12px;";
+        row.innerHTML = `<span style="color:#666;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;min-width:58px;">Telefon</span><a href="tel:${u.telefon}" style="flex:1;font-size:16px;color:#3b82f6;text-decoration:none;">${u.telefon}</a>`;
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.style.cssText = "width:36px;height:36px;font-size:16px;";
+        btn.textContent = "📋";
+        btn.onclick = function() { kopieraText(u.telefon, this); };
+        row.appendChild(btn);
+        card.appendChild(row);
+    }
+
+    const actions = document.createElement("div");
+    actions.style.cssText = "display:flex;gap:8px;margin-top:4px;";
+
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = u.utford ? "btn btn-secondary" : "btn btn-primary";
+    toggleBtn.style.cssText = "flex:1;padding:12px;font-size:15px;margin-top:0;";
+    toggleBtn.textContent = u.utford ? "Markera ej klar" : "✓ Markera klar";
+    toggleBtn.onclick = async () => {
+        const res = await fetch(API_URL + "/uppgifter/" + u.id + "/utford", {
+            method: "PATCH", headers: { "X-PIN": PIN }
+        });
+        await res.json();
+        hamtaUppgifter();
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn btn-danger";
+    delBtn.style.cssText = "flex:0 0 auto;padding:12px 16px;font-size:15px;margin-top:0;width:auto;";
+    delBtn.textContent = "🗑️";
+    delBtn.onclick = async () => {
+        if (!confirm("Ta bort uppgiften?")) return;
+        await fetch(API_URL + "/uppgifter/" + u.id, {
+            method: "DELETE", headers: { "X-PIN": PIN }
+        });
+        hamtaUppgifter();
+    };
+
+    actions.appendChild(toggleBtn);
+    actions.appendChild(delBtn);
+    card.appendChild(actions);
+    container.appendChild(card);
+}
+
+function visaSkapaUppgift() {
+    document.getElementById("appView").classList.add("hidden");
+    document.getElementById("skapaUppgiftView").classList.remove("hidden");
+}
+
+function stangSkapaUppgift() {
+    document.getElementById("skapaUppgiftView").classList.add("hidden");
+    document.getElementById("appView").classList.remove("hidden");
+    visaTab("uppgifter");
+}
+
+async function skapaUppgift() {
+    const titel = document.getElementById("uTitel").value.trim();
+    if (!titel) return alert("Fyll i titel");
+    await fetch(API_URL + "/uppgifter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-PIN": PIN },
+        body: JSON.stringify({
+            titel,
+            beskrivning: document.getElementById("uBeskrivning").value,
+            adress: document.getElementById("uAdress").value,
+            telefon: document.getElementById("uTelefon").value
+        })
+    });
+    document.getElementById("uTitel").value = "";
+    document.getElementById("uBeskrivning").value = "";
+    document.getElementById("uAdress").value = "";
+    document.getElementById("uTelefon").value = "";
+    stangSkapaUppgift();
 }
 
 async function skapaJobb() {
