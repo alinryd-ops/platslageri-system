@@ -712,8 +712,8 @@
         <span class="form-label">Titel *</span>
         <input id="uTitel" placeholder="Vad ska göras?">
 
-        <span class="form-label">Namn (kontaktperson)</span>
-        <input id="uNamn" placeholder="Förnamn Efternamn">
+        <span class="form-label">Utförare</span>
+        <input id="uNamn" placeholder="Vem ska utföra uppgiften?">
 
         <span class="form-label">Prioritet</span>
         <select id="uPrioritet">
@@ -759,8 +759,8 @@
         <span class="form-label">Titel *</span>
         <input id="ruTitel" placeholder="Vad ska göras?">
 
-        <span class="form-label">Namn (kontaktperson)</span>
-        <input id="ruNamn" placeholder="Förnamn Efternamn">
+        <span class="form-label">Utförare</span>
+        <input id="ruNamn" placeholder="Vem ska utföra uppgiften?">
 
         <span class="form-label">Prioritet</span>
         <select id="ruPrioritet">
@@ -1172,7 +1172,7 @@ function renderUppgiftKort(u, container) {
     if (u.namn) {
         const namn = document.createElement("div");
         namn.style.cssText = "color:#aaa;font-size:15px;margin-top:-4px;";
-        namn.textContent = u.namn;
+        namn.textContent = "👷 " + u.namn;
         card.appendChild(namn);
     }
 
