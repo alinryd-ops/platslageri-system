@@ -68,6 +68,10 @@ public class JobbController {
             throw new ValidationException("Beskrivning måste anges");
         }
 
+        if (jobb.getMaterialLista() != null) {
+            jobb.getMaterialLista().forEach(m -> m.setJobb(jobb));
+        }
+
         return jobbRepository.save(jobb);
     }
 
