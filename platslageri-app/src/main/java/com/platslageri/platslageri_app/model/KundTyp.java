@@ -6,12 +6,12 @@ package com.platslageri.platslageri_app.model;
 public enum KundTyp {
 
     PRIVAT,
-    FÖRETAG;
+    FORETAG;
 
     public double getTimpris() {
         return switch (this) {
             case PRIVAT -> 500.0;
-            case FÖRETAG -> 650.0;
+            case FORETAG -> 650.0;
         };
     }
 }
