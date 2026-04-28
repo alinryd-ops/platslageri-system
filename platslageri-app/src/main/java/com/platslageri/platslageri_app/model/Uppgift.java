@@ -23,6 +23,7 @@ public class Uppgift {
     private String telefon;
     private boolean utford;
     private LocalDateTime skapad;
+    private java.time.LocalDate datum;
     private java.time.LocalDate deadline;
     private String prioritet;
     private String referens;
@@ -61,6 +62,9 @@ public class Uppgift {
 
     public LocalDateTime getSkapad() { return skapad; }
     public void setSkapad(LocalDateTime skapad) { this.skapad = skapad; }
+
+    public java.time.LocalDate getDatum() { return datum; }
+    public void setDatum(java.time.LocalDate datum) { this.datum = datum; }
 
     public java.time.LocalDate getDeadline() { return deadline; }
     public void setDeadline(java.time.LocalDate deadline) { this.deadline = deadline; }

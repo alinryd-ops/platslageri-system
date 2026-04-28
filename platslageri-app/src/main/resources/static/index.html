@@ -722,6 +722,9 @@
             <option value="LAG">Låg</option>
         </select>
 
+        <span class="form-label">Datum</span>
+        <input id="uDatum" type="date">
+
         <span class="form-label">Deadline</span>
         <input id="uDeadline" type="date">
 
@@ -768,6 +771,9 @@
             <option value="HOG">Hög</option>
             <option value="LAG">Låg</option>
         </select>
+
+        <span class="form-label">Datum</span>
+        <input id="ruDatum" type="date">
 
         <span class="form-label">Deadline</span>
         <input id="ruDeadline" type="date">
@@ -1176,9 +1182,15 @@ function renderUppgiftKort(u, container) {
         card.appendChild(namn);
     }
 
-    if (u.prioritet || u.deadline || u.referens) {
+    if (u.datum || u.prioritet || u.deadline || u.referens) {
         const meta = document.createElement("div");
         meta.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
+        if (u.datum) {
+            const dBadge = document.createElement("span");
+            dBadge.style.cssText = "background:#1e3a5f;color:#93c5fd;border-radius:6px;padding:3px 8px;font-size:13px;";
+            dBadge.textContent = "📅 " + u.datum;
+            meta.appendChild(dBadge);
+        }
         if (u.prioritet) {
             const pColors = { HOG: "#dc2626", MEDEL: "#d97706", LAG: "#6b7280" };
             const pBadge = document.createElement("span");
@@ -1300,6 +1312,7 @@ function visaRedigeraUppgift(u) {
     document.getElementById("ruTitel").value = u.titel || "";
     document.getElementById("ruNamn").value = u.namn || "";
     document.getElementById("ruPrioritet").value = u.prioritet || "MEDEL";
+    document.getElementById("ruDatum").value = u.datum || "";
     document.getElementById("ruDeadline").value = u.deadline || "";
     document.getElementById("ruReferens").value = u.referens || "";
     document.getElementById("ruBeskrivning").value = u.beskrivning || "";
@@ -1323,6 +1336,7 @@ async function sparaRedigeratUppgift() {
             titel,
             namn: document.getElementById("ruNamn").value,
             prioritet: document.getElementById("ruPrioritet").value,
+            datum: document.getElementById("ruDatum").value || null,
             deadline: document.getElementById("ruDeadline").value || null,
             referens: document.getElementById("ruReferens").value,
             beskrivning: document.getElementById("ruBeskrivning").value,
@@ -1347,6 +1361,7 @@ async function skapaUppgift() {
             titel,
             namn: document.getElementById("uNamn").value,
             prioritet: document.getElementById("uPrioritet").value,
+            datum: document.getElementById("uDatum").value || null,
             deadline: document.getElementById("uDeadline").value || null,
             referens: document.getElementById("uReferens").value,
             beskrivning: document.getElementById("uBeskrivning").value,
@@ -1371,6 +1386,7 @@ async function skapaUppgift() {
     document.getElementById("uTitel").value = "";
     document.getElementById("uNamn").value = "";
     document.getElementById("uPrioritet").value = "MEDEL";
+    document.getElementById("uDatum").value = "";
     document.getElementById("uDeadline").value = "";
     document.getElementById("uReferens").value = "";
     document.getElementById("uBeskrivning").value = "";

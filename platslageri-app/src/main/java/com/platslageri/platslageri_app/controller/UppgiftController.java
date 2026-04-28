@@ -70,6 +70,7 @@ public class UppgiftController {
         uppgift.setBeskrivning(uppdaterad.getBeskrivning());
         uppgift.setAdress(uppdaterad.getAdress());
         uppgift.setTelefon(uppdaterad.getTelefon());
+        uppgift.setDatum(uppdaterad.getDatum());
         uppgift.setDeadline(uppdaterad.getDeadline());
         uppgift.setPrioritet(uppdaterad.getPrioritet());
         uppgift.setReferens(uppdaterad.getReferens());
