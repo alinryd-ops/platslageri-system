@@ -511,7 +511,7 @@
         <span class="form-label">Kulör</span>
         <input id="matKulor" placeholder="t.ex. RAL 7016, svart">
         <span class="form-label">Mängd</span>
-        <input id="matMangd" type="number" inputmode="decimal" placeholder="0">
+        <input id="matMangd" type="number" inputmode="decimal" placeholder="0" value="1">
         <span class="form-label">Enhet</span>
         <input id="matEnhet" placeholder="t.ex. m², st, m">
 
@@ -734,7 +734,8 @@ async function loggaIn() {
             return alert("Fel PIN-kod");
         }
 
-        materialTyper = await res.json();
+        const data = await res.json();
+        materialTyper = Array.isArray(data) ? data : [];
         document.getElementById("loginView").classList.add("hidden");
         document.getElementById("appView").classList.remove("hidden");
         byggMaterialDropdown("matTyp");
@@ -776,6 +777,7 @@ function visaTab(tab) {
     document.getElementById("navJobb").classList.toggle("active", tab === "jobb");
     document.getElementById("navSkapa").classList.toggle("active", tab === "skapa");
     document.getElementById("navUppgifter").classList.toggle("active", tab === "uppgifter");
+    if (tab === "skapa") byggMaterialDropdown("matTyp");
     if (tab === "uppgifter") hamtaUppgifter();
 }
 
