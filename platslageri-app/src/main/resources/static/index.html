@@ -491,11 +491,6 @@
         <span class="form-label">Referens</span>
         <input id="referens" placeholder="T.ex. ordernr, kundref">
 
-        <span class="form-label">Kundtyp</span>
-        <select id="kundTyp">
-            <option value="PRIVAT">Privat</option>
-            <option value="FORETAG">Företag</option>
-        </select>
 
         <span class="form-label">Startdatum</span>
         <input id="startDatum" type="date">
@@ -579,14 +574,6 @@
                 <div class="field-value" id="dLittra"></div>
             </div>
             <button class="copy-btn" onclick="kopieraFalt('dLittra', this)" title="Kopiera">📋</button>
-        </div>
-
-        <div class="field-row">
-            <div class="field-info">
-                <div class="field-label">Kundtyp</div>
-                <div class="field-value" id="dKundTyp"></div>
-            </div>
-            <button class="copy-btn" onclick="kopieraFalt('dKundTyp', this)" title="Kopiera">📋</button>
         </div>
 
         <div class="field-row">
@@ -725,6 +712,9 @@
         <span class="form-label">Titel *</span>
         <input id="uTitel" placeholder="Vad ska göras?">
 
+        <span class="form-label">Namn (kontaktperson)</span>
+        <input id="uNamn" placeholder="Förnamn Efternamn">
+
         <span class="form-label">Prioritet</span>
         <select id="uPrioritet">
             <option value="MEDEL">Medel</option>
@@ -758,10 +748,53 @@
     </div>
 </div>
 
+<!-- ========== REDIGERA UPPGIFT ========== -->
+<div id="redigeraUppgiftView" class="hidden">
+    <div class="topbar">
+        <button class="topbar-back" onclick="stangRedigeraUppgift()">←</button>
+        Redigera uppgift
+    </div>
+    <div class="page">
+
+        <span class="form-label">Titel *</span>
+        <input id="ruTitel" placeholder="Vad ska göras?">
+
+        <span class="form-label">Namn (kontaktperson)</span>
+        <input id="ruNamn" placeholder="Förnamn Efternamn">
+
+        <span class="form-label">Prioritet</span>
+        <select id="ruPrioritet">
+            <option value="MEDEL">Medel</option>
+            <option value="HOG">Hög</option>
+            <option value="LAG">Låg</option>
+        </select>
+
+        <span class="form-label">Deadline</span>
+        <input id="ruDeadline" type="date">
+
+        <span class="form-label">Referens</span>
+        <input id="ruReferens" placeholder="T.ex. ordernr, jobbreferens">
+
+        <span class="form-label">Beskrivning</span>
+        <textarea id="ruBeskrivning" placeholder="Mer detaljer..."></textarea>
+
+        <span class="form-label">Adress</span>
+        <input id="ruAdress" placeholder="Gatuadress, stad">
+
+        <span class="form-label">Telefonnummer</span>
+        <input id="ruTelefon" type="tel" inputmode="tel" placeholder="070 000 00 00">
+
+        <div style="margin-top: 24px;">
+            <button class="btn btn-primary" onclick="sparaRedigeratUppgift()">💾 Spara ändringar</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const API_URL = "https://platslageri-system-1.onrender.com";
 let PIN = "";
 let currentJobb = null;
+let currentUppgift = null;
 let materialSkapa = [];
 
 /* LOGIN */
@@ -865,7 +898,6 @@ function oppnaDetalj(j) {
     document.getElementById("dKund").innerText = j.kund || "–";
     document.getElementById("dBeskrivning").innerText = j.projektBeskrivning || "–";
     document.getElementById("dLittra").innerText = j.littra || "–";
-    document.getElementById("dKundTyp").innerText = j.kundTyp || "–";
     document.getElementById("dStartDatum").innerText = j.startDatum || "–";
     document.getElementById("dSlutDatum").innerText = j.slutDatum || "–";
     const tid = (j.timmar || 0) > 0 || (j.minuter || 0) > 0
@@ -1048,7 +1080,6 @@ async function sparaRedigerat() {
             projektBeskrivning: document.getElementById("rBeskrivning").value,
             anteckning: document.getElementById("rAnteckning").value,
             littra: currentJobb.littra,
-            kundTyp: currentJobb.kundTyp,
             timmar: parseInt(document.getElementById("rTimmar").value) || 0,
             minuter: parseInt(document.getElementById("rMinuter").value) || 0,
             startDatum: document.getElementById("rStartDatum").value || null,
@@ -1137,6 +1168,13 @@ function renderUppgiftKort(u, container) {
     header.appendChild(dot);
     header.appendChild(titel);
     card.appendChild(header);
+
+    if (u.namn) {
+        const namn = document.createElement("div");
+        namn.style.cssText = "color:#aaa;font-size:15px;margin-top:-4px;";
+        namn.textContent = u.namn;
+        card.appendChild(namn);
+    }
 
     if (u.prioritet || u.deadline || u.referens) {
         const meta = document.createElement("div");
@@ -1230,7 +1268,14 @@ function renderUppgiftKort(u, container) {
     bildBtn.textContent = "📷";
     bildBtn.onclick = () => visaBilder(u.id, bildBtn);
 
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn btn-secondary";
+    editBtn.style.cssText = "flex:0 0 auto;padding:12px 16px;font-size:15px;margin-top:0;width:auto;";
+    editBtn.textContent = "✏️";
+    editBtn.onclick = () => visaRedigeraUppgift(u);
+
     actions.appendChild(toggleBtn);
+    actions.appendChild(editBtn);
     actions.appendChild(bildBtn);
     actions.appendChild(delBtn);
     card.appendChild(actions);
@@ -1248,6 +1293,49 @@ function stangSkapaUppgift() {
     visaTab("uppgifter");
 }
 
+function visaRedigeraUppgift(u) {
+    currentUppgift = u;
+    document.getElementById("appView").classList.add("hidden");
+    document.getElementById("redigeraUppgiftView").classList.remove("hidden");
+    document.getElementById("ruTitel").value = u.titel || "";
+    document.getElementById("ruNamn").value = u.namn || "";
+    document.getElementById("ruPrioritet").value = u.prioritet || "MEDEL";
+    document.getElementById("ruDeadline").value = u.deadline || "";
+    document.getElementById("ruReferens").value = u.referens || "";
+    document.getElementById("ruBeskrivning").value = u.beskrivning || "";
+    document.getElementById("ruAdress").value = u.adress || "";
+    document.getElementById("ruTelefon").value = u.telefon || "";
+}
+
+function stangRedigeraUppgift() {
+    document.getElementById("redigeraUppgiftView").classList.add("hidden");
+    document.getElementById("appView").classList.remove("hidden");
+    visaTab("uppgifter");
+}
+
+async function sparaRedigeratUppgift() {
+    const titel = document.getElementById("ruTitel").value.trim();
+    if (!titel) return alert("Fyll i titel");
+    const res = await fetch(API_URL + "/uppgifter/" + currentUppgift.id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-PIN": PIN },
+        body: JSON.stringify({
+            titel,
+            namn: document.getElementById("ruNamn").value,
+            prioritet: document.getElementById("ruPrioritet").value,
+            deadline: document.getElementById("ruDeadline").value || null,
+            referens: document.getElementById("ruReferens").value,
+            beskrivning: document.getElementById("ruBeskrivning").value,
+            adress: document.getElementById("ruAdress").value,
+            telefon: document.getElementById("ruTelefon").value
+        })
+    });
+    if (!res.ok) { alert("Kunde inte spara. Försök igen."); return; }
+    alert("Sparat!");
+    stangRedigeraUppgift();
+    hamtaUppgifter();
+}
+
 async function skapaUppgift() {
     const titel = document.getElementById("uTitel").value.trim();
     if (!titel) return alert("Fyll i titel");
@@ -1257,6 +1345,7 @@ async function skapaUppgift() {
         headers: { "Content-Type": "application/json", "X-PIN": PIN },
         body: JSON.stringify({
             titel,
+            namn: document.getElementById("uNamn").value,
             prioritet: document.getElementById("uPrioritet").value,
             deadline: document.getElementById("uDeadline").value || null,
             referens: document.getElementById("uReferens").value,
@@ -1280,6 +1369,7 @@ async function skapaUppgift() {
     }
 
     document.getElementById("uTitel").value = "";
+    document.getElementById("uNamn").value = "";
     document.getElementById("uPrioritet").value = "MEDEL";
     document.getElementById("uDeadline").value = "";
     document.getElementById("uReferens").value = "";
@@ -1364,7 +1454,6 @@ async function skapaJobb() {
             projektBeskrivning: beskrivning,
             littra: document.getElementById("littra").value,
             referens: document.getElementById("referens").value,
-            kundTyp: document.getElementById("kundTyp").value,
             startDatum: document.getElementById("startDatum").value || null,
             slutDatum: document.getElementById("slutDatum").value || null,
             timmar: parseInt(document.getElementById("timmar").value) || 0,

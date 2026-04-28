@@ -14,6 +14,7 @@ public class Uppgift {
     private Long id;
 
     private String titel;
+    private String namn;
 
     @Column(length = 1000)
     private String beskrivning;
@@ -42,6 +43,9 @@ public class Uppgift {
 
     public String getTitel() { return titel; }
     public void setTitel(String titel) { this.titel = titel; }
+
+    public String getNamn() { return namn; }
+    public void setNamn(String namn) { this.namn = namn; }
 
     public String getBeskrivning() { return beskrivning; }
     public void setBeskrivning(String beskrivning) { this.beskrivning = beskrivning; }

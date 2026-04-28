@@ -89,7 +89,6 @@ public class JobbController {
         jobb.setKund(uppdateradJobb.getKund());
         jobb.setProjektBeskrivning(uppdateradJobb.getProjektBeskrivning());
         jobb.setLittra(uppdateradJobb.getLittra());
-        jobb.setKundTyp(uppdateradJobb.getKundTyp());
         jobb.setTimmar(uppdateradJobb.getTimmar());
         jobb.setMinuter(uppdateradJobb.getMinuter());
         jobb.setFakturerad(uppdateradJobb.isFakturerad());

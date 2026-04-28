@@ -6,9 +6,6 @@ import java.util.List;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
-/**
- * Representerar ett jobb/projekt
- */
 @Entity
 public class Jobb {
 
@@ -22,9 +19,6 @@ public class Jobb {
     private String kund;
     private String projektBeskrivning;
     private String littra;
-
-    @Enumerated(EnumType.STRING)
-    private KundTyp kundTyp; // behåll om du vill kategorisera kund
 
     // ========================
     // TID
@@ -82,9 +76,6 @@ public class Jobb {
 
     public String getLittra() { return littra; }
     public void setLittra(String littra) { this.littra = littra; }
-
-    public KundTyp getKundTyp() { return kundTyp; }
-    public void setKundTyp(KundTyp kundTyp) { this.kundTyp = kundTyp; }
 
     public int getTimmar() { return timmar; }
     public void setTimmar(int timmar) { this.timmar = timmar; }

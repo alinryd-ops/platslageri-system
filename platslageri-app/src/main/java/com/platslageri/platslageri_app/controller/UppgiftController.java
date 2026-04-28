@@ -61,6 +61,21 @@ public class UppgiftController {
         return uppgift.getBilder();
     }
 
+    @PutMapping("/{id}")
+    public Uppgift uppdateraUppgift(@PathVariable Long id, @RequestBody Uppgift uppdaterad) {
+        Uppgift uppgift = uppgiftRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Uppgift med ID " + id + " hittades inte"));
+        uppgift.setTitel(uppdaterad.getTitel());
+        uppgift.setNamn(uppdaterad.getNamn());
+        uppgift.setBeskrivning(uppdaterad.getBeskrivning());
+        uppgift.setAdress(uppdaterad.getAdress());
+        uppgift.setTelefon(uppdaterad.getTelefon());
+        uppgift.setDeadline(uppdaterad.getDeadline());
+        uppgift.setPrioritet(uppdaterad.getPrioritet());
+        uppgift.setReferens(uppdaterad.getReferens());
+        return uppgiftRepository.save(uppgift);
+    }
+
     @PatchMapping("/{id}/utford")
     public Uppgift toggleUtford(@PathVariable Long id) {
         Uppgift uppgift = uppgiftRepository.findById(id)
