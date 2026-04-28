@@ -93,10 +93,14 @@ public class JobbController {
         jobb.setTimmar(uppdateradJobb.getTimmar());
         jobb.setMinuter(uppdateradJobb.getMinuter());
         jobb.setFakturerad(uppdateradJobb.isFakturerad());
+        jobb.setKlar(uppdateradJobb.isKlar());
         jobb.setLittraMarkning(uppdateradJobb.getLittraMarkning());
         jobb.setAnteckning(uppdateradJobb.getAnteckning());
         jobb.setStartDatum(uppdateradJobb.getStartDatum());
         jobb.setSlutDatum(uppdateradJobb.getSlutDatum());
+        jobb.setReferens(uppdateradJobb.getReferens());
+        jobb.setAntalResor(uppdateradJobb.getAntalResor());
+        jobb.setKm(uppdateradJobb.getKm());
 
         return jobbRepository.save(jobb);
     }
@@ -107,6 +111,17 @@ public class JobbController {
     @DeleteMapping("/{jobbId}")
     public void taBortJobb(@PathVariable Long jobbId) {
         jobbRepository.deleteById(jobbId);
+    }
+
+    /**
+     * Toggla klar-status
+     */
+    @PatchMapping("/{jobbId}/klar")
+    public Jobb toggleKlar(@PathVariable Long jobbId) {
+        Jobb jobb = jobbRepository.findById(jobbId)
+                .orElseThrow(() -> new NotFoundException("Jobb med ID " + jobbId + " hittades inte"));
+        jobb.setKlar(!jobb.isKlar());
+        return jobbRepository.save(jobb);
     }
 
     /**

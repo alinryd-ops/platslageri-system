@@ -129,6 +129,13 @@
         }
         .toggle-btn.to-fakturerad { background: #166534; color: #fff; }
         .toggle-btn.to-ofakturerad { background: #3a3a3a; color: #aaa; border: 1px solid #444; }
+        .status-dot.klar    { background: #22c55e; box-shadow: 0 0 6px #22c55e66; }
+        .status-dot.ej-klar { background: #3b82f6; box-shadow: 0 0 6px #3b82f666; }
+        .status-text.klar    { color: #22c55e; }
+        .status-text.ej-klar { color: #3b82f6; }
+        .toggle-btn.to-klar    { background: #166534; color: #fff; }
+        .toggle-btn.to-ej-klar { background: #3a3a3a; color: #aaa; border: 1px solid #444; }
+        .klar-badge { font-size:12px; color:#22c55e; font-weight:600; margin-top:2px; }
 
         /* ÅTGÄRDSKNAPPAR */
         .action-row {
@@ -478,8 +485,11 @@
         <span class="form-label">Beskrivning</span>
         <input id="beskrivning" placeholder="Vad ska göras?">
 
-        <span class="form-label">Littra / Referens</span>
+        <span class="form-label">Littra</span>
         <input id="littra" placeholder="Littra">
+
+        <span class="form-label">Referens</span>
+        <input id="referens" placeholder="T.ex. ordernr, kundref">
 
         <span class="form-label">Kundtyp</span>
         <select id="kundTyp">
@@ -498,6 +508,12 @@
 
         <span class="form-label">Minuter</span>
         <input id="minuter" type="number" inputmode="numeric" placeholder="0" min="0" max="59">
+
+        <span class="form-label">Antal resor</span>
+        <input id="antalResor" type="number" inputmode="numeric" placeholder="0" min="0">
+
+        <span class="form-label">Km (totalt)</span>
+        <input id="km" type="number" inputmode="decimal" placeholder="0" min="0">
 
         <span class="form-label">Anteckning</span>
         <textarea id="anteckning" placeholder="Beskriv vad som gjordes, material, detaljer..."></textarea>
@@ -599,6 +615,21 @@
 
         <div class="field-row">
             <div class="field-info">
+                <div class="field-label">Referens</div>
+                <div class="field-value" id="dReferens"></div>
+            </div>
+            <button class="copy-btn" onclick="kopieraFalt('dReferens', this)" title="Kopiera">📋</button>
+        </div>
+
+        <div class="field-row">
+            <div class="field-info">
+                <div class="field-label">Resor</div>
+                <div class="field-value" id="dResor"></div>
+            </div>
+        </div>
+
+        <div class="field-row">
+            <div class="field-info">
                 <div class="field-label">Anteckning</div>
                 <div class="field-value" id="dAnteckning" style="white-space: pre-wrap;"></div>
             </div>
@@ -610,6 +641,13 @@
 
         <div class="section-header" style="margin-top:24px;">Status</div>
         <div class="status-bar">
+            <div class="status-info">
+                <div class="status-dot" id="dKlarDot"></div>
+                <div class="status-text" id="dKlarText"></div>
+            </div>
+            <button class="toggle-btn" id="dKlarBtn" onclick="toggleKlar()"></button>
+        </div>
+        <div class="status-bar" style="margin-top:8px;">
             <div class="status-info">
                 <div class="status-dot" id="dStatusDot"></div>
                 <div class="status-text" id="dStatusText"></div>
@@ -653,6 +691,15 @@
         <span class="form-label">Anteckning</span>
         <textarea id="rAnteckning" placeholder="Anteckning"></textarea>
 
+        <span class="form-label">Referens</span>
+        <input id="rReferens" placeholder="t.ex. beställningsnummer">
+
+        <span class="form-label">Antal resor</span>
+        <input id="rAntalResor" type="number" inputmode="numeric" placeholder="0" min="0">
+
+        <span class="form-label">Km (per resa)</span>
+        <input id="rKm" type="number" inputmode="decimal" placeholder="0" min="0" step="0.1">
+
         <div class="section-header">Material</div>
         <div id="rMaterialLista"></div>
 
@@ -677,6 +724,19 @@
 
         <span class="form-label">Titel *</span>
         <input id="uTitel" placeholder="Vad ska göras?">
+
+        <span class="form-label">Prioritet</span>
+        <select id="uPrioritet">
+            <option value="MEDEL">Medel</option>
+            <option value="HOG">Hög</option>
+            <option value="LAG">Låg</option>
+        </select>
+
+        <span class="form-label">Deadline</span>
+        <input id="uDeadline" type="date">
+
+        <span class="form-label">Referens</span>
+        <input id="uReferens" placeholder="T.ex. ordernr, jobbreferens">
 
         <span class="form-label">Beskrivning</span>
         <textarea id="uBeskrivning" placeholder="Mer detaljer..."></textarea>
@@ -784,6 +844,7 @@ async function hamtaJobb() {
                 <div class="card-kund">${j.kund || ""}</div>
                 <div class="card-beskrivning">${j.projektBeskrivning || ""}</div>
                 ${j.startDatum ? `<div class="card-datum">📅 ${j.startDatum}${j.slutDatum ? " → " + j.slutDatum : ""}</div>` : ""}
+                ${j.klar ? '<div class="klar-badge">✓ Klar</div>' : ''}
             `;
             card.appendChild(dot);
             card.appendChild(content);
@@ -813,7 +874,13 @@ function oppnaDetalj(j) {
     document.getElementById("dTid").innerText = tid;
     document.getElementById("dAnteckning").innerText = j.anteckning || "–";
 
+    const dReferens = document.getElementById("dReferens");
+    if (dReferens) dReferens.innerText = j.referens || "–";
+    const dResor = document.getElementById("dResor");
+    if (dResor) dResor.innerText = (j.antalResor || 0) > 0 ? `${j.antalResor} st  ·  ${j.km || 0} km` : "–";
+
     renderDetaljMaterial(j.materialLista || []);
+    uppdateraKlarUI(j.klar);
     uppdateraStatusUI(j.fakturerad);
 }
 
@@ -875,6 +942,35 @@ async function toggleFakturerad() {
     uppdateraStatusUI(currentJobb.fakturerad);
 }
 
+function uppdateraKlarUI(klar) {
+    const dot  = document.getElementById("dKlarDot");
+    const text = document.getElementById("dKlarText");
+    const btn  = document.getElementById("dKlarBtn");
+    if (klar) {
+        dot.className  = "status-dot klar";
+        text.className = "status-text klar";
+        text.innerText = "✓ Klar";
+        btn.className  = "toggle-btn to-ej-klar";
+        btn.innerText  = "Markera ej klart";
+    } else {
+        dot.className  = "status-dot ej-klar";
+        text.className = "status-text ej-klar";
+        text.innerText = "● Ej klart";
+        btn.className  = "toggle-btn to-klar";
+        btn.innerText  = "Markera klar ✓";
+    }
+}
+
+async function toggleKlar() {
+    const res = await fetch(API_URL + "/jobb/" + currentJobb.id + "/klar", {
+        method: "PATCH",
+        headers: { "X-PIN": PIN }
+    });
+    const uppdaterad = await res.json();
+    currentJobb.klar = uppdaterad.klar;
+    uppdateraKlarUI(currentJobb.klar);
+}
+
 function stangDetalj() {
     document.getElementById("detaljView").classList.add("hidden");
     document.getElementById("appView").classList.remove("hidden");
@@ -903,6 +999,9 @@ function visaRedigera() {
     document.getElementById("rTimmar").value = currentJobb.timmar || "";
     document.getElementById("rMinuter").value = currentJobb.minuter || "";
     document.getElementById("rAnteckning").value = currentJobb.anteckning || "";
+    document.getElementById("rReferens").value = currentJobb.referens || "";
+    document.getElementById("rAntalResor").value = currentJobb.antalResor || "";
+    document.getElementById("rKm").value = currentJobb.km || "";
 
     renderRedigeraMaterial();
 }
@@ -955,7 +1054,11 @@ async function sparaRedigerat() {
             startDatum: document.getElementById("rStartDatum").value || null,
             slutDatum: document.getElementById("rSlutDatum").value || null,
             fakturerad: currentJobb.fakturerad,
+            klar: currentJobb.klar,
             littraMarkning: currentJobb.littraMarkning,
+            referens: document.getElementById("rReferens").value || null,
+            antalResor: parseInt(document.getElementById("rAntalResor").value) || 0,
+            km: parseFloat(document.getElementById("rKm").value) || 0,
             materialLista: currentJobb.materialLista || []
         })
     });
@@ -967,6 +1070,9 @@ async function sparaRedigerat() {
     currentJobb.minuter = parseInt(document.getElementById("rMinuter").value) || 0;
     currentJobb.startDatum = document.getElementById("rStartDatum").value || null;
     currentJobb.slutDatum = document.getElementById("rSlutDatum").value || null;
+    currentJobb.referens = document.getElementById("rReferens").value || null;
+    currentJobb.antalResor = parseInt(document.getElementById("rAntalResor").value) || 0;
+    currentJobb.km = parseFloat(document.getElementById("rKm").value) || 0;
 
     alert("Sparat!");
     stangRedigera();
@@ -1031,6 +1137,32 @@ function renderUppgiftKort(u, container) {
     header.appendChild(dot);
     header.appendChild(titel);
     card.appendChild(header);
+
+    if (u.prioritet || u.deadline || u.referens) {
+        const meta = document.createElement("div");
+        meta.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
+        if (u.prioritet) {
+            const pColors = { HOG: "#dc2626", MEDEL: "#d97706", LAG: "#6b7280" };
+            const pBadge = document.createElement("span");
+            pBadge.style.cssText = `background:${pColors[u.prioritet]||"#555"};color:#fff;border-radius:6px;padding:3px 8px;font-size:13px;font-weight:bold;`;
+            pBadge.textContent = u.prioritet === "HOG" ? "HÖG" : u.prioritet === "LAG" ? "LÅG" : "MEDEL";
+            meta.appendChild(pBadge);
+        }
+        if (u.deadline) {
+            const dBadge = document.createElement("span");
+            const past = new Date(u.deadline) < new Date();
+            dBadge.style.cssText = `background:${past?"#7f1d1d":"#1e3a5f"};color:${past?"#fca5a5":"#93c5fd"};border-radius:6px;padding:3px 8px;font-size:13px;`;
+            dBadge.textContent = "📅 " + u.deadline;
+            meta.appendChild(dBadge);
+        }
+        if (u.referens) {
+            const rBadge = document.createElement("span");
+            rBadge.style.cssText = "background:#252525;color:#888;border-radius:6px;padding:3px 8px;font-size:13px;";
+            rBadge.textContent = u.referens;
+            meta.appendChild(rBadge);
+        }
+        card.appendChild(meta);
+    }
 
     if (u.beskrivning) {
         const besk = document.createElement("div");
@@ -1125,6 +1257,9 @@ async function skapaUppgift() {
         headers: { "Content-Type": "application/json", "X-PIN": PIN },
         body: JSON.stringify({
             titel,
+            prioritet: document.getElementById("uPrioritet").value,
+            deadline: document.getElementById("uDeadline").value || null,
+            referens: document.getElementById("uReferens").value,
             beskrivning: document.getElementById("uBeskrivning").value,
             adress: document.getElementById("uAdress").value,
             telefon: document.getElementById("uTelefon").value
@@ -1145,6 +1280,9 @@ async function skapaUppgift() {
     }
 
     document.getElementById("uTitel").value = "";
+    document.getElementById("uPrioritet").value = "MEDEL";
+    document.getElementById("uDeadline").value = "";
+    document.getElementById("uReferens").value = "";
     document.getElementById("uBeskrivning").value = "";
     document.getElementById("uAdress").value = "";
     document.getElementById("uTelefon").value = "";
@@ -1225,11 +1363,14 @@ async function skapaJobb() {
             kund,
             projektBeskrivning: beskrivning,
             littra: document.getElementById("littra").value,
+            referens: document.getElementById("referens").value,
             kundTyp: document.getElementById("kundTyp").value,
             startDatum: document.getElementById("startDatum").value || null,
             slutDatum: document.getElementById("slutDatum").value || null,
             timmar: parseInt(document.getElementById("timmar").value) || 0,
             minuter: parseInt(document.getElementById("minuter").value) || 0,
+            antalResor: parseInt(document.getElementById("antalResor").value) || 0,
+            km: parseFloat(document.getElementById("km").value) || 0,
             anteckning: document.getElementById("anteckning").value,
             materialLista: materialSkapa
         })
@@ -1246,6 +1387,9 @@ async function skapaJobb() {
     document.getElementById("kund").value = "";
     document.getElementById("beskrivning").value = "";
     document.getElementById("littra").value = "";
+    document.getElementById("referens").value = "";
+    document.getElementById("antalResor").value = "";
+    document.getElementById("km").value = "";
     document.getElementById("anteckning").value = "";
     visaTab("jobb");
     hamtaJobb();

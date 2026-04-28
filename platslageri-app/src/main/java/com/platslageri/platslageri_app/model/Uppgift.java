@@ -22,6 +22,9 @@ public class Uppgift {
     private String telefon;
     private boolean utford;
     private LocalDateTime skapad;
+    private java.time.LocalDate deadline;
+    private String prioritet;
+    private String referens;
 
     @OneToMany(mappedBy = "uppgift", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
@@ -54,6 +57,15 @@ public class Uppgift {
 
     public LocalDateTime getSkapad() { return skapad; }
     public void setSkapad(LocalDateTime skapad) { this.skapad = skapad; }
+
+    public java.time.LocalDate getDeadline() { return deadline; }
+    public void setDeadline(java.time.LocalDate deadline) { this.deadline = deadline; }
+
+    public String getPrioritet() { return prioritet; }
+    public void setPrioritet(String prioritet) { this.prioritet = prioritet; }
+
+    public String getReferens() { return referens; }
+    public void setReferens(String referens) { this.referens = referens; }
 
     public List<UppgiftBild> getBilder() { return bilder; }
     public void setBilder(List<UppgiftBild> bilder) { this.bilder = bilder; }

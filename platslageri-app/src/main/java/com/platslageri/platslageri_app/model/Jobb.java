@@ -42,11 +42,19 @@ public class Jobb {
     // STATUS
     // ========================
     private boolean fakturerad;
+    private boolean klar;
 
     // ========================
     // LITTRA/MÄRKNING
     // ========================
     private String littraMarkning;
+    private String referens;
+
+    // ========================
+    // RESOR
+    // ========================
+    private int antalResor;
+    private double km;
 
     public Jobb() {}
 
@@ -90,8 +98,20 @@ public class Jobb {
     public boolean isFakturerad() { return fakturerad; }
     public void setFakturerad(boolean fakturerad) { this.fakturerad = fakturerad; }
 
+    public boolean isKlar() { return klar; }
+    public void setKlar(boolean klar) { this.klar = klar; }
+
     public String getLittraMarkning() { return littraMarkning; }
     public void setLittraMarkning(String littraMarkning) { this.littraMarkning = littraMarkning; }
+
+    public String getReferens() { return referens; }
+    public void setReferens(String referens) { this.referens = referens; }
+
+    public int getAntalResor() { return antalResor; }
+    public void setAntalResor(int antalResor) { this.antalResor = antalResor; }
+
+    public double getKm() { return km; }
+    public void setKm(double km) { this.km = km; }
 
     public String getAnteckning() {
         return anteckning;
