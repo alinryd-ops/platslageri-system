@@ -3,8 +3,11 @@ package com.platslageri.platslageri_app.controller;
 import com.platslageri.platslageri_app.exception.NotFoundException;
 import com.platslageri.platslageri_app.exception.ValidationException;
 import com.platslageri.platslageri_app.model.Uppgift;
+import com.platslageri.platslageri_app.model.UppgiftBild;
 import com.platslageri.platslageri_app.repository.UppgiftRepository;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import java.util.List;
 
@@ -38,6 +41,24 @@ public class UppgiftController {
             throw new NotFoundException("Uppgift med ID " + id + " hittades inte");
         }
         uppgiftRepository.deleteById(id);
+    }
+
+    @PostMapping("/{id}/bilder")
+    public void laggTillBild(@PathVariable Long id, @RequestBody String data) {
+        Uppgift uppgift = uppgiftRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Uppgift med ID " + id + " hittades inte"));
+        UppgiftBild bild = new UppgiftBild();
+        bild.setData(data);
+        bild.setUppgift(uppgift);
+        uppgift.getBilder().add(bild);
+        uppgiftRepository.save(uppgift);
+    }
+
+    @GetMapping("/{id}/bilder")
+    public List<UppgiftBild> getBilder(@PathVariable Long id) {
+        Uppgift uppgift = uppgiftRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Uppgift med ID " + id + " hittades inte"));
+        return uppgift.getBilder();
     }
 
     @PatchMapping("/{id}/utford")

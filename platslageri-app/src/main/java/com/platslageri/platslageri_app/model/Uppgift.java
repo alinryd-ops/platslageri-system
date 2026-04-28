@@ -1,7 +1,10 @@
 package com.platslageri.platslageri_app.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Uppgift {
@@ -19,6 +22,10 @@ public class Uppgift {
     private String telefon;
     private boolean utford;
     private LocalDateTime skapad;
+
+    @OneToMany(mappedBy = "uppgift", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<UppgiftBild> bilder = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -47,4 +54,9 @@ public class Uppgift {
 
     public LocalDateTime getSkapad() { return skapad; }
     public void setSkapad(LocalDateTime skapad) { this.skapad = skapad; }
+
+    public List<UppgiftBild> getBilder() { return bilder; }
+    public void setBilder(List<UppgiftBild> bilder) { this.bilder = bilder; }
+
+    public int getBildCount() { return bilder == null ? 0 : bilder.size(); }
 }

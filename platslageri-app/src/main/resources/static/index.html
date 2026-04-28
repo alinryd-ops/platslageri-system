@@ -181,7 +181,7 @@
             margin-bottom: 6px;
             margin-top: 16px;
         }
-        input, select, textarea {
+        input, textarea {
             width: 100%;
             padding: 16px;
             background: #1e1e1e;
@@ -190,12 +190,108 @@
             color: #fff;
             font-size: 18px;
         }
+        select {
+            width: 100%;
+            padding: 16px 44px 16px 16px;
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #3b82f6;
         }
         textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
         select option { background: #1e1e1e; }
+
+        /* BILDUPPLADDNING */
+        .bild-input-wrapper {
+            position: relative;
+        }
+        .bild-input-wrapper input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+        }
+        .bild-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 18px;
+            background: #1e1e1e;
+            border: 2px dashed #3a3a3a;
+            border-radius: 14px;
+            color: #888;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        .bild-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .bild-preview-grid img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+        }
+        .bild-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #1e3a5f;
+            color: #60a5fa;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 14px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        .bild-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+            gap: 12px;
+        }
+        .bild-modal-overlay img {
+            width: 100%;
+            border-radius: 12px;
+        }
+        .bild-modal-close {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: #2a2a2a;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* KNAPPAR */
         .btn {
@@ -412,6 +508,8 @@
 
         <span class="form-label">Materialtyp</span>
         <select id="matTyp"></select>
+        <span class="form-label">Kulör</span>
+        <input id="matKulor" placeholder="t.ex. RAL 7016, svart">
         <span class="form-label">Mängd</span>
         <input id="matMangd" type="number" inputmode="decimal" placeholder="0">
         <span class="form-label">Enhet</span>
@@ -568,6 +666,8 @@
 
         <span class="form-label">Lägg till material</span>
         <select id="rMatTyp"></select>
+        <span class="form-label">Kulör</span>
+        <input id="rMatKulor" placeholder="t.ex. RAL 7016, svart">
         <span class="form-label">Mängd</span>
         <input id="rMatMangd" type="number" inputmode="decimal" placeholder="0">
         <span class="form-label">Enhet</span>
@@ -601,6 +701,13 @@
 
         <span class="form-label">Telefonnummer</span>
         <input id="uTelefon" type="tel" inputmode="tel" placeholder="070 000 00 00">
+
+        <span class="form-label">Bilder</span>
+        <div class="bild-input-wrapper">
+            <input id="uBilder" type="file" accept="image/*" multiple onchange="forhandsvisaBilder()">
+            <div class="bild-input-label">📷 Välj bilder från biblioteket</div>
+        </div>
+        <div id="uBilderForhands" class="bild-preview-grid"></div>
 
         <button class="btn btn-primary" onclick="skapaUppgift()" style="margin-top:24px;">💾 Spara uppgift</button>
     </div>
@@ -875,6 +982,7 @@ function renderRedigeraMaterial() {
 
 function laggTillMaterialRedigera() {
     const typ = document.getElementById("rMatTyp").value;
+    const kulor = document.getElementById("rMatKulor").value;
     const mangd = parseFloat(document.getElementById("rMatMangd").value);
     const enhet = document.getElementById("rMatEnhet").value;
 
@@ -882,9 +990,10 @@ function laggTillMaterialRedigera() {
     if (isNaN(mangd)) return alert("Fyll i mängd");
 
     if (!currentJobb.materialLista) currentJobb.materialLista = [];
-    currentJobb.materialLista.push({ typ: typ.toUpperCase(), mangd, enhet });
+    currentJobb.materialLista.push({ typ: typ.toUpperCase(), kulor, mangd, enhet });
     renderRedigeraMaterial();
 
+    document.getElementById("rMatKulor").value = "";
     document.getElementById("rMatMangd").value = "";
     document.getElementById("rMatEnhet").value = "";
 }
@@ -935,16 +1044,18 @@ function byggMaterialDropdown(selectId) {
 
 function laggTillMaterialSkapa() {
     const typ = document.getElementById("matTyp").value;
+    const kulor = document.getElementById("matKulor").value;
     const mangd = parseFloat(document.getElementById("matMangd").value);
     const enhet = document.getElementById("matEnhet").value;
 
     if (!typ) return alert("Välj material");
     if (isNaN(mangd)) return alert("Fyll i mängd");
 
-    materialSkapa.push({ typ: typ.toUpperCase(), mangd, enhet });
+    materialSkapa.push({ typ: typ.toUpperCase(), kulor, mangd, enhet });
     renderMaterialSkapaLista();
 
     document.getElementById("matTyp").value = "";
+    document.getElementById("matKulor").value = "";
     document.getElementById("matMangd").value = "";
     document.getElementById("matEnhet").value = "";
 }
@@ -956,7 +1067,8 @@ function renderMaterialSkapaLista() {
         const row = document.createElement("div");
         row.className = "material-edit-row";
         row.style.justifyContent = "space-between";
-        row.innerHTML = `<span style="font-size:17px;">${m.typ} – ${m.mangd} ${m.enhet}</span>`;
+        const text = [m.typ, m.kulor, m.mangd + " " + m.enhet].filter(Boolean).join(" · ");
+        row.innerHTML = `<span style="font-size:17px;">${text}</span>`;
         const btn = document.createElement("button");
         btn.textContent = "✕";
         btn.className = "remove-btn";
@@ -1060,7 +1172,14 @@ function renderUppgiftKort(u, container) {
         hamtaUppgifter();
     };
 
+    const bildBtn = document.createElement("button");
+    bildBtn.className = "btn btn-secondary";
+    bildBtn.style.cssText = "flex:0 0 auto;padding:12px 16px;font-size:15px;margin-top:0;width:auto;";
+    bildBtn.textContent = "📷";
+    bildBtn.onclick = () => visaBilder(u.id, bildBtn);
+
     actions.appendChild(toggleBtn);
+    actions.appendChild(bildBtn);
     actions.appendChild(delBtn);
     card.appendChild(actions);
     container.appendChild(card);
@@ -1080,7 +1199,8 @@ function stangSkapaUppgift() {
 async function skapaUppgift() {
     const titel = document.getElementById("uTitel").value.trim();
     if (!titel) return alert("Fyll i titel");
-    await fetch(API_URL + "/uppgifter", {
+
+    const res = await fetch(API_URL + "/uppgifter", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-PIN": PIN },
         body: JSON.stringify({
@@ -1090,11 +1210,86 @@ async function skapaUppgift() {
             telefon: document.getElementById("uTelefon").value
         })
     });
+    if (!res.ok) { alert("Kunde inte spara uppgiften. Försök igen."); return; }
+
+    const sparad = await res.json();
+
+    const filer = document.getElementById("uBilder").files;
+    for (const fil of filer) {
+        const data = await komprimeraOchLas(fil);
+        await fetch(API_URL + "/uppgifter/" + sparad.id + "/bilder", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain", "X-PIN": PIN },
+            body: data
+        });
+    }
+
     document.getElementById("uTitel").value = "";
     document.getElementById("uBeskrivning").value = "";
     document.getElementById("uAdress").value = "";
     document.getElementById("uTelefon").value = "";
+    document.getElementById("uBilder").value = "";
+    document.getElementById("uBilderForhands").innerHTML = "";
     stangSkapaUppgift();
+}
+
+function forhandsvisaBilder() {
+    const grid = document.getElementById("uBilderForhands");
+    grid.innerHTML = "";
+    const filer = document.getElementById("uBilder").files;
+    for (const fil of filer) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(fil);
+        grid.appendChild(img);
+    }
+}
+
+function komprimeraOchLas(fil) {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const maxPx = 1200;
+                let w = img.width, h = img.height;
+                if (w > maxPx || h > maxPx) {
+                    if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+                    else { w = Math.round(w * maxPx / h); h = maxPx; }
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w; canvas.height = h;
+                canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL("image/jpeg", 0.75));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(fil);
+    });
+}
+
+async function visaBilder(uppgiftId, btn) {
+    if (document.getElementById("bildModal")) {
+        document.getElementById("bildModal").remove();
+        return;
+    }
+    const res = await fetch(API_URL + "/uppgifter/" + uppgiftId + "/bilder", { headers: { "X-PIN": PIN } });
+    const bilder = await res.json();
+    if (bilder.length === 0) { alert("Inga bilder tillagda."); return; }
+
+    const overlay = document.createElement("div");
+    overlay.id = "bildModal";
+    overlay.className = "bild-modal-overlay";
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "bild-modal-close";
+    closeBtn.textContent = "✕";
+    closeBtn.onclick = () => overlay.remove();
+    overlay.appendChild(closeBtn);
+    bilder.forEach(b => {
+        const img = document.createElement("img");
+        img.src = b.data;
+        overlay.appendChild(img);
+    });
+    document.body.appendChild(overlay);
 }
 
 async function skapaJobb() {

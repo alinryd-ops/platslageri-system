@@ -24,6 +24,7 @@ public class Material {
     private String kategori;
     private double mangd;
     private String enhet;
+    private String kulor;
 
     public Material() {}
 
@@ -70,4 +71,7 @@ public class Material {
     public void setEnhet(String enhet) {
         this.enhet = enhet;
     }
+
+    public String getKulor() { return kulor; }
+    public void setKulor(String kulor) { this.kulor = kulor; }
 }
