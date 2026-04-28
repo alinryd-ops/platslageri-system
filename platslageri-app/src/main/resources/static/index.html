@@ -506,16 +506,8 @@
 
         <div id="materialSkapaLista"></div>
 
-        <span class="form-label">Materialtyp</span>
-        <select id="matTyp"></select>
-        <span class="form-label">Kulör</span>
-        <input id="matKulor" placeholder="t.ex. RAL 7016, svart">
-        <span class="form-label">Mängd</span>
-        <input id="matMangd" type="number" inputmode="decimal" placeholder="0" value="1">
-        <span class="form-label">Enhet</span>
-        <input id="matEnhet" placeholder="t.ex. m², st, m">
-
-        <button class="btn btn-secondary" onclick="laggTillMaterialSkapa()" style="margin-top:12px;">
+        <input id="matBeskrivning" placeholder="t.ex. FA-plåt RAL 7016, 2 m²">
+        <button class="btn btn-secondary" onclick="laggTillMaterialSkapa()" style="margin-top:8px;">
             + Lägg till material
         </button>
 
@@ -664,15 +656,8 @@
         <div class="section-header">Material</div>
         <div id="rMaterialLista"></div>
 
-        <span class="form-label">Lägg till material</span>
-        <select id="rMatTyp"></select>
-        <span class="form-label">Kulör</span>
-        <input id="rMatKulor" placeholder="t.ex. RAL 7016, svart">
-        <span class="form-label">Mängd</span>
-        <input id="rMatMangd" type="number" inputmode="decimal" placeholder="0">
-        <span class="form-label">Enhet</span>
-        <input id="rMatEnhet" placeholder="t.ex. m², st, m">
-        <button class="btn btn-secondary" onclick="laggTillMaterialRedigera()" style="margin-top:12px;">
+        <input id="rMatBeskrivning" placeholder="t.ex. FA-plåt RAL 7016, 2 m²">
+        <button class="btn btn-secondary" onclick="laggTillMaterialRedigera()" style="margin-top:8px;">
             + Lägg till material
         </button>
 
@@ -717,7 +702,6 @@
 const API_URL = "https://platslageri-system-1.onrender.com";
 let PIN = "";
 let currentJobb = null;
-let materialTyper = [];
 let materialSkapa = [];
 
 /* LOGIN */
@@ -726,19 +710,14 @@ async function loggaIn() {
     if (!PIN) return alert("Skriv PIN-kod");
 
     try {
-        const res = await fetch(API_URL + "/jobb/material-typer", {
-            headers: { "X-PIN": PIN }
-        });
+        const res = await fetch(API_URL + "/jobb", { headers: { "X-PIN": PIN } });
 
         if (res.status === 401 || res.status === 403) {
             return alert("Fel PIN-kod");
         }
 
-        const data = await res.json();
-        materialTyper = Array.isArray(data) ? data : [];
         document.getElementById("loginView").classList.add("hidden");
         document.getElementById("appView").classList.remove("hidden");
-        byggMaterialDropdown("matTyp");
         hamtaJobb();
     } catch (err) {
         alert("Kunde inte ansluta till servern. Försök igen.");
@@ -777,7 +756,6 @@ function visaTab(tab) {
     document.getElementById("navJobb").classList.toggle("active", tab === "jobb");
     document.getElementById("navSkapa").classList.toggle("active", tab === "skapa");
     document.getElementById("navUppgifter").classList.toggle("active", tab === "uppgifter");
-    if (tab === "skapa") byggMaterialDropdown("matTyp");
     if (tab === "uppgifter") hamtaUppgifter();
 }
 
@@ -849,7 +827,7 @@ function renderDetaljMaterial(list) {
     }
 
     list.forEach(m => {
-        const text = `${m.typ} – ${m.mangd} ${m.enhet}`;
+        const text = m.beskrivning || "";
         const row = document.createElement("div");
         row.className = "field-row";
         row.innerHTML = `
@@ -926,7 +904,6 @@ function visaRedigera() {
     document.getElementById("rMinuter").value = currentJobb.minuter || "";
     document.getElementById("rAnteckning").value = currentJobb.anteckning || "";
 
-    byggMaterialDropdown("rMatTyp");
     renderRedigeraMaterial();
 }
 
@@ -940,64 +917,27 @@ function renderRedigeraMaterial() {
     const container = document.getElementById("rMaterialLista");
     container.innerHTML = "";
     const lista = currentJobb.materialLista || [];
-
     lista.forEach((m, i) => {
         const row = document.createElement("div");
         row.className = "material-edit-row";
-
-        const sel = document.createElement("select");
-        sel.className = "material-edit-row select";
-        sel.style.cssText = "flex:2;min-width:100px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;padding:10px;color:#fff;font-size:16px;";
-        materialTyper.forEach(t => {
-            const v = typeof t === "string" ? t : t.name;
-            const opt = document.createElement("option");
-            opt.value = v; opt.text = v;
-            if (m.typ === v) opt.selected = true;
-            sel.appendChild(opt);
-        });
-        sel.onchange = e => lista[i].typ = e.target.value;
-
-        const mangdIn = document.createElement("input");
-        mangdIn.type = "number";
-        mangdIn.inputMode = "decimal";
-        mangdIn.value = m.mangd;
-        mangdIn.style.cssText = "width:70px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;padding:10px;color:#fff;font-size:16px;";
-        mangdIn.onchange = e => lista[i].mangd = parseFloat(e.target.value);
-
-        const enhetIn = document.createElement("input");
-        enhetIn.value = m.enhet;
-        enhetIn.style.cssText = "width:70px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;padding:10px;color:#fff;font-size:16px;";
-        enhetIn.onchange = e => lista[i].enhet = e.target.value;
-
+        row.style.justifyContent = "space-between";
+        row.innerHTML = `<span style="font-size:17px;">${m.beskrivning || ""}</span>`;
         const delBtn = document.createElement("button");
         delBtn.textContent = "✕";
         delBtn.className = "remove-btn";
         delBtn.onclick = () => { lista.splice(i, 1); renderRedigeraMaterial(); };
-
-        row.appendChild(sel);
-        row.appendChild(mangdIn);
-        row.appendChild(enhetIn);
         row.appendChild(delBtn);
         container.appendChild(row);
     });
 }
 
 function laggTillMaterialRedigera() {
-    const typ = document.getElementById("rMatTyp").value;
-    const kulor = document.getElementById("rMatKulor").value;
-    const mangd = parseFloat(document.getElementById("rMatMangd").value);
-    const enhet = document.getElementById("rMatEnhet").value;
-
-    if (!typ) return alert("Välj material");
-    if (isNaN(mangd)) return alert("Fyll i mängd");
-
+    const beskrivning = document.getElementById("rMatBeskrivning").value.trim();
+    if (!beskrivning) return alert("Fyll i material");
     if (!currentJobb.materialLista) currentJobb.materialLista = [];
-    currentJobb.materialLista.push({ typ: typ.toUpperCase(), kulor, mangd, enhet });
+    currentJobb.materialLista.push({ beskrivning });
     renderRedigeraMaterial();
-
-    document.getElementById("rMatKulor").value = "";
-    document.getElementById("rMatMangd").value = "";
-    document.getElementById("rMatEnhet").value = "";
+    document.getElementById("rMatBeskrivning").value = "";
 }
 
 async function sparaRedigerat() {
@@ -1033,33 +973,12 @@ async function sparaRedigerat() {
 }
 
 /* SKAPA JOBB */
-function byggMaterialDropdown(selectId) {
-    const sel = document.getElementById(selectId);
-    sel.innerHTML = '<option value="">Välj material</option>';
-    materialTyper.forEach(t => {
-        const v = typeof t === "string" ? t : t.name;
-        const opt = document.createElement("option");
-        opt.value = v; opt.text = v;
-        sel.appendChild(opt);
-    });
-}
-
 function laggTillMaterialSkapa() {
-    const typ = document.getElementById("matTyp").value;
-    const kulor = document.getElementById("matKulor").value;
-    const mangd = parseFloat(document.getElementById("matMangd").value);
-    const enhet = document.getElementById("matEnhet").value;
-
-    if (!typ) return alert("Välj material");
-    if (isNaN(mangd)) return alert("Fyll i mängd");
-
-    materialSkapa.push({ typ: typ.toUpperCase(), kulor, mangd, enhet });
+    const beskrivning = document.getElementById("matBeskrivning").value.trim();
+    if (!beskrivning) return alert("Fyll i material");
+    materialSkapa.push({ beskrivning });
     renderMaterialSkapaLista();
-
-    document.getElementById("matTyp").value = "";
-    document.getElementById("matKulor").value = "";
-    document.getElementById("matMangd").value = "";
-    document.getElementById("matEnhet").value = "";
+    document.getElementById("matBeskrivning").value = "";
 }
 
 function renderMaterialSkapaLista() {
@@ -1069,8 +988,7 @@ function renderMaterialSkapaLista() {
         const row = document.createElement("div");
         row.className = "material-edit-row";
         row.style.justifyContent = "space-between";
-        const text = [m.typ, m.kulor, m.mangd + " " + m.enhet].filter(Boolean).join(" · ");
-        row.innerHTML = `<span style="font-size:17px;">${text}</span>`;
+        row.innerHTML = `<span style="font-size:17px;">${m.beskrivning}</span>`;
         const btn = document.createElement("button");
         btn.textContent = "✕";
         btn.className = "remove-btn";
