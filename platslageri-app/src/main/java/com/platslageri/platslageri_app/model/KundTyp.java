@@ -5,16 +5,13 @@ package com.platslageri.platslageri_app.model;
  */
 public enum KundTyp {
 
-    PEAB,
-    PRIVAT;
+    PRIVAT,
+    FÖRETAG;
 
-    /**
-     * Hämtar timpris beroende på kund
-     */
     public double getTimpris() {
         return switch (this) {
-            case PEAB -> 650.0;
             case PRIVAT -> 500.0;
+            case FÖRETAG -> 650.0;
         };
     }
 }

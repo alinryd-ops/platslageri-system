@@ -1103,7 +1103,7 @@ async function skapaJobb() {
     if (!kund) return alert("Fyll i kundnamn");
     if (!beskrivning) return alert("Fyll i beskrivning");
 
-    await fetch(API_URL + "/jobb", {
+    const res = await fetch(API_URL + "/jobb", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-PIN": PIN },
         body: JSON.stringify({
@@ -1119,6 +1119,11 @@ async function skapaJobb() {
             materialLista: materialSkapa
         })
     });
+
+    if (!res.ok) {
+        alert("Fel: kunde inte spara jobbet. Försök igen.");
+        return;
+    }
 
     alert("Jobb sparat!");
     materialSkapa = [];
