@@ -35,7 +35,10 @@ public class Jobb {
     // ========================
     // STATUS
     // ========================
+    @Column(columnDefinition = "boolean default false not null")
     private boolean fakturerad;
+
+    @Column(columnDefinition = "boolean default false not null")
     private boolean klar;
 
     // ========================
@@ -47,7 +50,10 @@ public class Jobb {
     // ========================
     // RESOR
     // ========================
+    @Column(columnDefinition = "integer default 0 not null")
     private int antalResor;
+
+    @Column(columnDefinition = "double precision default 0 not null")
     private double km;
 
     public Jobb() {}

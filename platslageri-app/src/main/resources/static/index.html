@@ -814,6 +814,10 @@ async function loggaIn() {
         if (res.status === 401 || res.status === 403) {
             return alert("Fel PIN-kod");
         }
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            return alert("Serverfel (" + res.status + "): " + (err.error || "okänt fel"));
+        }
 
         document.getElementById("loginView").classList.add("hidden");
         document.getElementById("appView").classList.remove("hidden");
@@ -864,6 +868,11 @@ async function hamtaJobb() {
     lista.innerHTML = "<div style='color:#555;text-align:center;padding:20px;'>Laddar...</div>";
     try {
         const res = await fetch(API_URL + "/jobb", { headers: { "X-PIN": PIN } });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            lista.innerHTML = `<div style='color:#f87171;text-align:center;padding:20px;'>Serverfel (${res.status}): ${err.error || "okänt fel"}</div>`;
+            return;
+        }
         const jobbData = await res.json();
         lista.innerHTML = "";
 
